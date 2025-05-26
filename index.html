@@ -144,24 +144,34 @@
 
             <!-- Chat Messages Area -->
             <div class="chat-messages flex-grow p-6 space-y-6 overflow-y-auto">
-                <!-- Welcome Message -->
+                <!-- Conversation Turn 1: User -->
+                <div class="flex justify-end">
+                    <div class="bg-sky-600 p-3 rounded-lg rounded-br-none shadow max-w-[70%]">
+                        <p class="text-sm text-white">你好，我想了解一下工厂数据大屏的相关信息，特别是关于智慧助手的功能。</p>
+                        <p class="text-xs text-sky-200 mt-1 text-right">2025-05-27 10:00:00</p>
+                    </div>
+                     <div class="flex-shrink-0 ml-3">
+                        <div class="default-avatar" title="用户">
+                            <span class="material-icons-outlined">person_outline</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conversation Turn 1: Assistant -->
                 <div class="flex">
                     <div class="flex-shrink-0 mr-3">
                         <img class="w-8 h-8 rounded-full border border-slate-600" src="https://cdn.sa.net/2025/05/26/UPA8DyTu6XzcBhY.png" alt="智慧助手头像">
                     </div>
-                    <div class="bg-slate-700/80 p-3 rounded-lg rounded-tl-none shadow">
-                        <p class="text-sm text-slate-200">您好！我是智慧助手，很高兴为您服务。您可以问我任何问题，或尝试以下操作：</p>
-                        <div class="mt-3 space-y-2">
-                            <button class="block w-full text-left text-sm text-sky-400 hover:text-sky-300 bg-slate-600/50 hover:bg-slate-600/80 px-3 py-2 rounded-md transition-colors">查询今日数据概览</button>
-                            <button class="block w-full text-left text-sm text-sky-400 hover:text-sky-300 bg-slate-600/50 hover:bg-slate-600/80 px-3 py-2 rounded-md transition-colors">我能做些什么？</button>
-                        </div>
-                        <p class="text-xs text-slate-500 mt-2 text-right">2025-05-27 10:00:00</p>
+                    <div class="bg-slate-700/80 p-3 rounded-lg rounded-tl-none shadow max-w-[80%]">
+                        <p class="text-sm text-slate-200">您好！工厂数据大屏的智慧助手是一个集数据可视化、智能分析和实时监控于一体的智能系统。它能够实时展示工厂的各项关键指标，如生产进度、设备状态、质量控制等。</p>
+                        <p class="text-xs text-slate-500 mt-2 text-right">2025-05-27 10:00:35</p>
                     </div>
                 </div>
-                <!-- User Message Example -->
+
+                <!-- Conversation Turn 2: User -->
                 <div class="flex justify-end">
                     <div class="bg-sky-600 p-3 rounded-lg rounded-br-none shadow max-w-[70%]">
-                        <p class="text-sm text-white">你好，请帮我分析一下上个月的用户增长情况。</p>
+                        <p class="text-sm text-white">我看到工厂数据大屏上显示的设备生产率指标突然下降了，你能帮我分析一下可能的原因吗？</p>
                         <p class="text-xs text-sky-200 mt-1 text-right">2025-05-27 10:01:30</p>
                     </div>
                      <div class="flex-shrink-0 ml-3">
@@ -170,34 +180,23 @@
                         </div>
                     </div>
                 </div>
-                <!-- Assistant Message Example -->
+
+                <!-- Conversation Turn 2: Assistant -->
                 <div class="flex">
                     <div class="flex-shrink-0 mr-3">
                         <img class="w-8 h-8 rounded-full border border-slate-600" src="https://cdn.sa.net/2025/05/26/UPA8DyTu6XzcBhY.png" alt="智慧助手头像">
                     </div>
-                    <div class="bg-slate-700/80 p-3 rounded-lg rounded-tl-none shadow max-w-[70%]">
-                        <p class="text-sm text-slate-200">好的，正在为您分析上个月的用户增长数据，请稍候...</p>
-                        <div class="flex items-center space-x-1 mt-2 typing-indicator">
-                            <span class="text-xs text-slate-400">正在输入</span>
-                            <div class="w-1.5 h-1.5 bg-sky-400 rounded-full animate-pulse delay-75"></div>
-                            <div class="w-1.5 h-1.5 bg-sky-400 rounded-full animate-pulse delay-150"></div>
-                            <div class="w-1.5 h-1.5 bg-sky-400 rounded-full animate-pulse delay-300"></div>
-                        </div>
-                        <p class="text-xs text-slate-500 mt-2 text-right">2025-05-27 10:01:35</p>
-                    </div>
-                </div>
-                <div class="flex">
-                    <div class="flex-shrink-0 mr-3">
-                        <img class="w-8 h-8 rounded-full border border-slate-600" src="https://cdn.sa.net/2025/05/26/UPA8DyTu6XzcBhY.png" alt="智慧助手头像">
-                    </div>
-                    <div class="bg-slate-700/80 p-3 rounded-lg rounded-tl-none shadow">
-                        <p class="text-sm text-slate-200">另外，本周的关键绩效指标 (KPI) 显示市场活动参与度提高了 25%。</p>
+                    <div class="bg-slate-700/80 p-3 rounded-lg rounded-tl-none shadow max-w-[80%]">
+                        <p class="text-sm text-slate-200">您好！设备 OEE 指标的突然下降可能由多种因素引起。以下是一些常见的原因及分析：设备故障或停机、生产速度降低、产品质量问题、计划外停机。</p>
+                         <!-- Removed typing indicator for this static example, you can add it back if simulating live typing -->
                         <p class="text-xs text-slate-500 mt-2 text-right">2025-05-27 10:02:15</p>
                     </div>
                 </div>
+
+                <!-- Conversation Turn 3: User -->
                 <div class="flex justify-end">
                     <div class="bg-sky-600 p-3 rounded-lg rounded-br-none shadow max-w-[70%]">
-                        <p class="text-sm text-white">太棒了！请生成一份详细报告。</p>
+                        <p class="text-sm text-white">好的，那请帮我生成一份今日工厂运营情况的总结报告。</p>
                         <p class="text-xs text-sky-200 mt-1 text-right">2025-05-27 10:03:00</p>
                     </div>
                      <div class="flex-shrink-0 ml-3">
@@ -206,12 +205,19 @@
                         </div>
                     </div>
                 </div>
-                 <div class="flex">
+                 <!-- Conversation Turn 3: Assistant -->
+                <div class="flex">
                     <div class="flex-shrink-0 mr-3">
                         <img class="w-8 h-8 rounded-full border border-slate-600" src="https://cdn.sa.net/2025/05/26/UPA8DyTu6XzcBhY.png" alt="智慧助手头像">
                     </div>
-                    <div class="bg-slate-700/80 p-3 rounded-lg rounded-tl-none shadow">
-                        <p class="text-sm text-slate-200">报告正在生成中，请稍等...</p>
+                    <div class="bg-slate-700/80 p-3 rounded-lg rounded-tl-none shadow max-w-[80%]" id="assistant-last-response">
+                        <p class="text-sm text-slate-200">好的，正在为您生成今日工厂运营情况总结报告。报告将包括今日产量、良品率、设备利用率、能耗情况以及异常事件汇总。请稍等。</p>
+                        <div class="flex items-center space-x-1 mt-2 typing-indicator-final">
+                            <span class="text-xs text-slate-400">正在生成报告</span>
+                            <div class="w-1.5 h-1.5 bg-sky-400 rounded-full animate-pulse delay-75"></div>
+                            <div class="w-1.5 h-1.5 bg-sky-400 rounded-full animate-pulse delay-150"></div>
+                            <div class="w-1.5 h-1.5 bg-sky-400 rounded-full animate-pulse delay-300"></div>
+                        </div>
                         <p class="text-xs text-slate-500 mt-2 text-right">2025-05-27 10:03:05</p>
                     </div>
                 </div>
@@ -253,21 +259,18 @@
         function toggleAssistant() {
             isOpen = !isOpen;
             if (isOpen) {
-                // Show Mask
                 pageMask.classList.remove('hidden');
-                pageMask.classList.remove('pointer-events-none') // Enable mask interaction if needed, or keep it none
-                setTimeout(() => pageMask.style.opacity = '1', 10); // Slight delay for transition
+                pageMask.classList.remove('pointer-events-none')
+                setTimeout(() => pageMask.style.opacity = '1', 10);
 
 
-                // Show Dialog
                 chatDialogWrapper.classList.remove('hidden');
                 chatDialogWrapper.classList.remove('dialog-fade-out-scale');
                 chatDialogWrapper.classList.add('dialog-fade-in-scale');
 
-                // Show Digital Human
                 if (digitalHumanContainer && window.matchMedia('(min-width: 768px)').matches) {
                     digitalHumanContainer.classList.remove('hidden');
-                    digitalHumanContainer.style.zIndex = '35'; // Ensure digital human is above mask
+                    digitalHumanContainer.style.zIndex = '35';
                     setTimeout(() => {
                         digitalHumanContainer.style.opacity = '1';
                         digitalHumanContainer.style.transform = 'translateY(0) scale(1)';
@@ -275,21 +278,18 @@
                 }
 
             } else {
-                // Hide Mask
                 pageMask.style.opacity = '0';
                 setTimeout(() => {
                     pageMask.classList.add('hidden');
                     pageMask.classList.add('pointer-events-none');
-                }, 300); // Match opacity transition duration
+                }, 300);
 
-                // Hide Dialog
                 chatDialogWrapper.classList.add('dialog-fade-out-scale');
                 chatDialogWrapper.classList.remove('dialog-fade-in-scale');
                 setTimeout(() => {
                     chatDialogWrapper.classList.add('hidden');
                 }, 300);
 
-                // Hide Digital Human
                 if (digitalHumanContainer) {
                     digitalHumanContainer.style.opacity = '0';
                     digitalHumanContainer.style.transform = 'translateY(50px) scale(0.95)';
@@ -302,20 +302,23 @@
             }
         }
 
-        // Example: Simulate assistant response
+        // Simulate report generation completion for the last assistant message
         setTimeout(() => {
-            const typingIndicator = document.querySelector('.typing-indicator');
-            if (typingIndicator) {
-                 const assistantBubble = typingIndicator.closest('.bg-slate-700\\/80');
-                 if(assistantBubble){
-                    const actualMessage = document.createElement('p');
-                    actualMessage.className = 'text-sm text-slate-200 pt-2';
-                    actualMessage.textContent = '根据数据显示，上个月用户总数增长了 15%，主要增长来源于新注册用户和市场推广活动带来的用户。详细报告已发送至您的邮箱。';
-                    typingIndicator.parentNode.insertBefore(actualMessage, typingIndicator);
-                    typingIndicator.remove();
-                 }
+            const typingIndicatorFinal = document.querySelector('.typing-indicator-final');
+            const assistantLastResponseBubble = document.getElementById('assistant-last-response');
+
+            if (typingIndicatorFinal && assistantLastResponseBubble) {
+                // Remove typing indicator
+                typingIndicatorFinal.remove();
+
+                // Add completion message
+                const completionMessage = document.createElement('p');
+                completionMessage.className = 'text-sm text-green-400 pt-2'; // Using green to indicate success
+                completionMessage.textContent = '今日汽配注塑车间运营总结：
+产量为15000件，完成计划的98%。良品率95.5%，较上周提升0.3%。设备利用率82%，注塑机运行正常，无大规模停机。能耗总计2800千瓦时，较昨日降低2.1%。异常事件3起，包含2次模具卡料和1次冷却系统故障，均及时修复，未影响整体生产。总体运行平稳，建议加强模具维护及能耗监控，提升生产效率。';
+                assistantLastResponseBubble.insertBefore(completionMessage, assistantLastResponseBubble.querySelector('.text-xs.text-slate-500'));
             }
-        }, 5000);
+        }, 7000); // Simulate report generation time (7 seconds)
 
     </script>
 
