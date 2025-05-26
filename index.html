@@ -3,411 +3,272 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>仿真钱包 - 美元版</title>
-    <script src="https://cdn.tailwindcss.com/3.4.3"></script>
+    <title>智慧助手</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <!-- 引入 Tabler Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
     <style>
         body {
-            font-family: 'Noto Sans SC', 'Alibaba PuHuiTi', sans-serif;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            background-color: #000;
-        }
-
-        .app-container {
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .app-mockup {
-            width: 375px;
-            height: 812px;
-            background: linear-gradient(160deg, #2c2c32 0%, #1a1a1d 100%);
-            border-radius: 40px;
-            box-shadow: 0 0 0 7px rgba(180,180,180,0.03), 0 25px 60px rgba(0,0,0,0.6);
+            font-family: "Alibaba PuHuiTi", "Noto Sans SC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+            background-image: url('https://cdn.sa.net/2025/05/26/nSXGlTPNBIhf8K6.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 100vh;
             overflow: hidden;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            color: #e0e0e0;
+        }
+        .mockup-border {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            pointer-events: none;
         }
 
-        .custom-scrollbar::-webkit-scrollbar {
+        .chat-messages::-webkit-scrollbar {
             width: 6px;
         }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.03);
+        .chat-messages::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.1);
             border-radius: 10px;
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.15);
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
             border-radius: 10px;
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.25);
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.5);
         }
 
-        .styled-input:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.4);
+        #static-fab {
+            transition: transform 0.2s ease-in-out, background-color 0.3s ease-in-out;
         }
-        .styled-input[-moz-appearance="textfield"]::-webkit-outer-spin-button,
-        .styled-input[-moz-appearance="textfield"]::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        .styled-input[-moz-appearance="textfield"] {
-            -moz-appearance: textfield;
+        #static-fab:hover {
+            transform: scale(1.1);
         }
 
-        .bill-card {
-            position: relative;
-            overflow: hidden; /* Keep overflow hidden for rounded corners on image */
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease-out;
-            box-shadow: inset 0 0 8px rgba(0,0,0,0.3), 0 5px 15px rgba(0,0,0,0.3), 0 2px 5px rgba(0,0,0,0.2);
-            border-radius: 6px; /* Slight rounding for banknote appearance */
-            background-color: #333; /* Fallback if image fails, and for edges */
+        .dialog-fade-in-scale {
+            animation: dialogFadeInScale 0.3s ease-out forwards;
         }
 
-        .bill-card::before {
-            content: "";
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background-image:
-                radial-gradient(circle at 20% 30%, rgba(255,255,255,0.015) 0%, transparent 25%),
-                radial-gradient(circle at 80% 70%, rgba(255,255,255,0.020) 0%, transparent 30%);
-            opacity: 0.5;
-            transform: rotate(20deg) scale(1.1);
-            pointer-events: none;
-            z-index: 0;
-            transition: opacity 0.3s ease-in-out;
-        }
-         .bill-card:hover::before {
-            opacity: 0.7;
+        .dialog-fade-out-scale {
+            animation: dialogFadeOutScale 0.3s ease-in forwards;
         }
 
-        .bill-image {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* Ensures image covers the card area */
-            opacity: 1; /* Make banknote image fully visible */
-            z-index: 1;
-            border-radius: 5px; /* Match card rounding if overflow hidden */
-            transition: transform 0.3s ease-in-out;
-        }
-        .bill-card:hover .bill-image {
-            transform: scale(1.03); /* Slight zoom on hover */
+        /* Animation for dialog centering based on its own size */
+        @keyframes dialogFadeInScale {
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
         }
 
-        .bill-content {
-            position: relative;
-            z-index: 2;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 100%;
-            /* Add a very subtle, dark, translucent overlay to improve text readability on busy banknotes */
-            background: linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.2) 70%, rgba(0,0,0,0.3) 100%);
-            padding: 4px; /* Small padding for text */
+        @keyframes dialogFadeOutScale {
+            from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            to { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
         }
 
-        .pill-button {
-            border-radius: 9999px;
-            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out, box-shadow 0.2s ease-in-out;
+
+        .frosted-glass {
+            background-color: rgba(30, 41, 59, 0.8); /* bg-slate-800/80 */
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
         }
-        .pill-button:hover {
-            filter: brightness(1.15);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+        .chat-header-glass {
+            background-color: rgba(51, 65, 85, 0.85); /* bg-slate-700/85 */
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
         }
-        .pill-button:active {
-            transform: scale(0.97);
-            filter: brightness(0.9);
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3), 0 2px 5px rgba(0,0,0,0.15);
+        .material-icons, .material-icons-outlined {
+            font-size: inherit;
+        }
+        .icon-xs { font-size: 12px; }
+        .icon-sm { font-size: 20px; }
+        .icon-md { font-size: 24px; }
+        .icon-lg { font-size: 36px; }
+
+        .default-avatar {
+            width: 32px; height: 32px; border-radius: 50%;
+            background-color: #4A5568; /* gray-600 */
+            display: flex; align-items: center; justify-content: center;
+            border: 1px solid #718096; /* gray-500 */
+        }
+        .default-avatar .material-icons-outlined {
+            font-size: 20px; color: #E2E8F0; /* gray-300 */
         }
 
-        .bill-enter-active {
-            opacity: 1 !important;
-            transform: translateY(0) scale(1) !important;
-        }
-        .bill-initial {
-             opacity: 0;
-             transform: translateY(25px) scale(0.9);
-        }
-
-        .backdrop-blur-subtle {
-             backdrop-filter: blur(8px);
-             -webkit-backdrop-filter: blur(8px);
-        }
-
-        .fade-out-bottom::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 60px;
-            background: linear-gradient(to bottom, transparent, #1f1f22 90%);
-            pointer-events: none;
-            z-index: 10;
-        }
     </style>
 </head>
-<body class="bg-black">
+<body class="antialiased text-gray-100">
 
-    <div class="app-container">
-        <div class="app-mockup">
+    <div class="mockup-border"></div>
 
-            <div class="h-10 flex items-center justify-between px-8 pt-6 text-xs text-neutral-400 select-none">
-                <span id="currentTime" class="font-medium">10:00</span>
-                <div class="flex items-center space-x-1.5">
-                    <i class="ti ti-signal-4g"></i>
-                    <i class="ti ti-wifi"></i>
-                    <i class="ti ti-battery-3-filled"></i>
+    <!-- Static Icon Floating Action Button -->
+    <div id="static-fab" class="fixed bottom-8 right-8 z-50 cursor-pointer p-4 rounded-full bg-sky-600 hover:bg-sky-500 shadow-xl flex items-center justify-center" onclick="toggleAssistant()" title="打开智慧助手">
+        <span class="material-icons-outlined icon-lg text-white">support_agent</span>
+    </div>
+
+    <!-- Chat Dialog Wrapper -->
+    <div id="chat-dialog-wrapper"
+         class="hidden fixed top-1/2 z-40"
+         style="left: calc(50% - 120px); /* MODIFIED: Shifted left by 120px */
+                transform: translate(-50%, -50%); /* Ensures the dialog is centered on this new 'left' point */">
+        <!-- Chat Dialog -->
+        <div id="chat-dialog" class="w-[483px] h-[650px] frosted-glass rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-700/50">
+            <!-- Dialog Header -->
+            <div class="chat-header-glass p-4 flex items-center justify-between flex-shrink-0">
+                <div class="flex items-center">
+                    <img src="https://cdn.sa.net/2025/05/26/UPA8DyTu6XzcBhY.png" alt="智慧助手头像" class="w-10 h-10 rounded-full border-2 border-sky-400">
+                    <div class="ml-3">
+                        <h3 class="font-semibold text-lg text-white">智慧助手</h3>
+                        <p class="text-xs text-green-400 flex items-center">
+                            <span class="material-icons-outlined icon-xs text-green-400 mr-1">fiber_manual_record</span>在线
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-1">
+                     <button class="text-slate-400 hover:text-white transition-colors p-1.5 rounded-full hover:bg-slate-700/50" title="最小化">
+                        <span class="material-icons-outlined icon-sm">remove</span>
+                    </button>
+                    <button onclick="toggleAssistant()" class="text-slate-400 hover:text-white transition-colors p-1.5 rounded-full hover:bg-slate-700/50" title="关闭">
+                        <span class="material-icons-outlined icon-sm">close</span>
+                    </button>
                 </div>
             </div>
 
-            <main class="flex-1 flex flex-col p-5 pt-2 space-y-5 overflow-hidden">
-
-                <header class="text-center py-2">
-                    <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-cyan-400 to-sky-500">
-                        仿真钱包
-                    </h1>
-                    <p class="text-sm text-neutral-400 mt-1.5 tracking-wide">输入金额，见证您的财富可视化</p>
-                </header>
-
-                <section class="bg-neutral-800/60 backdrop-blur-subtle p-5 rounded-2xl shadow-2xl border border-neutral-700/50">
-                    <label for="amountInput" class="block text-sm font-medium text-neutral-300 mb-2.5">输入总金额 (USD)</label>
-                    <div class="flex items-center space-x-3">
-                        <div class="relative flex-grow">
-                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-neutral-400 pointer-events-none">
-                                <i class="ti ti-currency-dollar text-lg"></i>
-                            </span>
-                            <input type="number" id="amountInput" placeholder="例如: 1999"
-                                   class="styled-input block w-full pl-11 pr-4 py-3.5 bg-neutral-700/70 border border-neutral-600 rounded-xl shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500/70 focus:border-indigo-500 text-base text-white placeholder-neutral-500 transition-all duration-200 ease-in-out">
-                        </div>
-                        <button id="clearButton" title="清空金额"
-                                class="pill-button p-3.5 bg-gradient-to-br from-red-500 to-orange-500 text-white shadow-lg hover:from-red-600 hover:to-orange-600 active:shadow-inner transition-all duration-150">
-                            <i class="ti ti-trash text-xl"></i>
-                        </button>
+            <!-- Chat Messages Area -->
+            <div class="chat-messages flex-grow p-6 space-y-6 overflow-y-auto">
+                <!-- Welcome Message -->
+                <div class="flex">
+                    <div class="flex-shrink-0 mr-3">
+                        <img class="w-8 h-8 rounded-full border border-slate-600" src="https://cdn.sa.net/2025/05/26/UPA8DyTu6XzcBhY.png" alt="智慧助手头像">
                     </div>
-                </section>
-
-                <section class="flex-1 bg-neutral-800/40 backdrop-blur-subtle rounded-2xl shadow-inner border border-neutral-700/30 overflow-hidden relative p-1">
-                    <div id="billDisplayAreaWrapper" class="h-full relative">
-                        <div id="billDisplayArea" class="custom-scrollbar h-full overflow-y-auto p-4 space-y-3">
-                            <div id="emptyState" class="absolute inset-0 flex flex-col items-center justify-center text-center text-neutral-500 p-8 transition-opacity duration-300 select-none">
-                                <i class="ti ti-credit-card text-7xl opacity-25 mb-5"></i>
-                                <p class="text-xl font-semibold text-neutral-400">您的美元画卷</p>
-                                <p class="text-sm mt-1">请输入金额，我们将为您具象化每一分财富。</p>
-                            </div>
+                    <div class="bg-slate-700/80 p-3 rounded-lg rounded-tl-none shadow">
+                        <p class="text-sm text-slate-200">您好！我是智慧助手，很高兴为您服务。您可以问我任何问题，或尝试以下操作：</p>
+                        <div class="mt-3 space-y-2">
+                            <button class="block w-full text-left text-sm text-sky-400 hover:text-sky-300 bg-slate-600/50 hover:bg-slate-600/80 px-3 py-2 rounded-md transition-colors">查询今日数据概览</button>
+                            <button class="block w-full text-left text-sm text-sky-400 hover:text-sky-300 bg-slate-600/50 hover:bg-slate-600/80 px-3 py-2 rounded-md transition-colors">我能做些什么？</button>
                         </div>
-                        <div class="fade-out-bottom"></div>
+                        <p class="text-xs text-slate-500 mt-2 text-right">2025-05-27 10:00:00</p>
                     </div>
-                </section>
+                </div>
+                <!-- User Message Example -->
+                <div class="flex justify-end">
+                    <div class="bg-sky-600 p-3 rounded-lg rounded-br-none shadow max-w-[70%]">
+                        <p class="text-sm text-white">你好，请帮我分析一下上个月的用户增长情况。</p>
+                        <p class="text-xs text-sky-200 mt-1 text-right">2025-05-27 10:01:30</p>
+                    </div>
+                     <div class="flex-shrink-0 ml-3">
+                        <div class="default-avatar" title="用户">
+                            <span class="material-icons-outlined">person_outline</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Assistant Message Example -->
+                <div class="flex">
+                    <div class="flex-shrink-0 mr-3">
+                        <img class="w-8 h-8 rounded-full border border-slate-600" src="https://cdn.sa.net/2025/05/26/UPA8DyTu6XzcBhY.png" alt="智慧助手头像">
+                    </div>
+                    <div class="bg-slate-700/80 p-3 rounded-lg rounded-tl-none shadow max-w-[70%]">
+                        <p class="text-sm text-slate-200">好的，正在为您分析上个月的用户增长数据，请稍候...</p>
+                        <div class="flex items-center space-x-1 mt-2 typing-indicator">
+                            <span class="text-xs text-slate-400">正在输入</span>
+                            <div class="w-1.5 h-1.5 bg-sky-400 rounded-full animate-pulse delay-75"></div>
+                            <div class="w-1.5 h-1.5 bg-sky-400 rounded-full animate-pulse delay-150"></div>
+                            <div class="w-1.5 h-1.5 bg-sky-400 rounded-full animate-pulse delay-300"></div>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-2 text-right">2025-05-27 10:01:35</p>
+                    </div>
+                </div>
+            </div>
 
-                <section class="pt-3 pb-1">
-                     <button id="generateBillsButton" class="w-full pill-button bg-gradient-to-r from-green-500 via-teal-500 to-cyan-500 hover:shadow-cyan-500/30 text-white font-semibold py-4 px-6 shadow-xl text-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-neutral-900 focus:ring-green-500 transition-all duration-200 ease-in-out">
-                        <span class="flex items-center justify-center">
-                            <i class="ti ti-transform mr-2.5 text-xl"></i>生成纸币视图
-                        </span>
-                    </button>
-                </section>
-            </main>
+            <!-- Input Area -->
+            <div class="chat-header-glass p-4 flex items-center space-x-3 flex-shrink-0 border-t border-slate-700/50">
+                <input type="text" placeholder="请输入您的问题或指令..." class="flex-grow bg-slate-800/50 border border-slate-600 text-slate-200 placeholder-slate-500 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 py-2.5 px-4 outline-none transition-all">
+                <button class="p-2 text-slate-400 hover:text-sky-400 transition-colors rounded-full hover:bg-slate-700/50" title="语音输入">
+                     <span class="material-icons-outlined icon-sm">mic</span>
+                </button>
+                <button class="bg-sky-600 hover:bg-sky-500 text-white p-2.5 rounded-lg transition-colors shadow hover:shadow-md" title="发送">
+                    <span class="material-icons icon-sm">send</span>
+                </button>
+            </div>
         </div>
     </div>
 
+    <!-- Digital Human Image Container -->
+    <div id="digital-human-container"
+         class="fixed bottom-0 z-30 hidden md:block pointer-events-none"
+         style="left: calc(50% + 100px); /* Positioned relative to screen center */
+                opacity: 0;
+                transform: translateY(50px) scale(0.95);
+                transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease-out;">
+        <img src="https://cdn.sa.net/2025/05/26/IapOov2mdDZgMr4.png" alt="数字人智慧助手" class="h-auto max-h-[580px] object-contain drop-shadow-2xl">
+    </div>
+
+
     <script>
-        function updateTime() {
-            const now = new Date();
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const currentTimeEl = document.getElementById('currentTime');
-            if (currentTimeEl) {
-                 currentTimeEl.textContent = `${hours}:${minutes}`;
-            }
-        }
-        setInterval(updateTime, 1000 * 30);
-        updateTime();
+        const chatDialogWrapper = document.getElementById('chat-dialog-wrapper');
+        const digitalHumanContainer = document.getElementById('digital-human-container');
+        let isOpen = false;
 
-        const amountInput = document.getElementById('amountInput');
-        const clearButton = document.getElementById('clearButton');
-        const generateBillsButton = document.getElementById('generateBillsButton');
-        const billDisplayArea = document.getElementById('billDisplayArea');
-        const emptyState = document.getElementById('emptyState');
-
-        // USD Banknote Denominations and Image URLs from Wikimedia Commons (Public Domain or CC)
-        // Standard US banknote dimensions: approx 156mm x 66.3mm (ratio ~2.35:1)
-        // We'll use a consistent display width and calculate height.
-        const banknoteDisplayWidth = 165; // px
-        const banknoteDisplayHeight = Math.round(banknoteDisplayWidth / 2.3526); // approx 70px
-
-        const denominations = [
-            // Note: Using smaller image versions from Wikimedia for faster loading.
-            // Ensure these URLs remain valid. Consider hosting images if stability is critical.
-            { value: 100, imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Usdollar100front.jpg/300px-Usdollar100front.jpg', width: banknoteDisplayWidth, height: banknoteDisplayHeight },
-            { value: 50,  imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/US_%2450_Series_2004_Obverse.jpg/300px-US_%2450_Series_2004_Obverse.jpg', width: banknoteDisplayWidth, height: banknoteDisplayHeight },
-            { value: 20,  imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/US_%2420_Series_2006_Obverse.jpg/300px-US_%2420_Series_2006_Obverse.jpg', width: banknoteDisplayWidth, height: banknoteDisplayHeight },
-            { value: 10,  imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/US_%2410_Series_2004A_Obverse.jpg/300px-US_%2410_Series_2004A_Obverse.jpg', width: banknoteDisplayWidth, height: banknoteDisplayHeight },
-            { value: 5,   imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/US_%245_Series_2006_Obverse.jpg/300px-US_%245_Series_2006_Obverse.jpg', width: banknoteDisplayWidth, height: banknoteDisplayHeight },
-            { value: 1,   imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/US_%241_FRB_note_Obverse_800px.jpg/300px-US_%241_FRB_note_Obverse_800px.jpg', width: banknoteDisplayWidth, height: banknoteDisplayHeight }
-            // $2 bill is less common, omitted for simplicity but could be added.
-        ];
-
-        function createBillElement(denomination) {
-            const billCard = document.createElement('div');
-            const { value, imageUrl, width, height } = denomination;
-
-            billCard.className = `bill-card bg-neutral-700/30 rounded-md relative flex items-center justify-center bill-initial`; // Changed to rounded-md
-            billCard.style.width = `${width}px`;
-            billCard.style.height = `${height}px`;
-            billCard.style.setProperty('--tw-shadow', '0 6px 18px rgba(0,0,0,0.35), 0 2px 6px rgba(0,0,0,0.25)');
-
-            const img = document.createElement('img');
-            img.className = 'bill-image';
-            img.src = imageUrl;
-            img.alt = `$${value} USD Banknote`;
-            img.onerror = function() { // Simple fallback visual cue
-                this.alt = `Error loading $${value} image`;
-                // Could replace with a placeholder background or color
-                billCard.style.border = "1px dashed red";
-            }
-            billCard.appendChild(img);
-
-            // Content layer for text (e.g., value, for enhanced visibility)
-            // This layer is styled in CSS with .bill-content
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'bill-content'; // Text will be styled via CSS
-
-            const valueText = document.createElement('span');
-            valueText.className = 'text-xl font-bold tracking-wider text-white'; // Adjusted text size
-            valueText.style.textShadow = '0px 1px 3px rgba(0,0,0,0.7), 0px 0px 8px rgba(0,0,0,0.5)';
-            valueText.textContent = `$${value}`;
-            contentDiv.appendChild(valueText);
-
-            // Optional: could add a very small "USD" text if desired
-            // const currencyCodeText = document.createElement('span');
-            // currencyCodeText.className = 'text-[9px] text-neutral-300/80 font-light uppercase tracking-wider';
-            // currencyCodeText.textContent = 'USD';
-            // contentDiv.appendChild(currencyCodeText);
-
-            billCard.appendChild(contentDiv);
-            return billCard;
+        if (digitalHumanContainer) {
+            digitalHumanContainer.classList.add('hidden');
+            digitalHumanContainer.style.opacity = '0';
+            digitalHumanContainer.style.transform = 'translateY(50px) scale(0.95)';
         }
 
+        function toggleAssistant() {
+            isOpen = !isOpen;
+            if (isOpen) {
+                chatDialogWrapper.classList.remove('hidden');
+                // The animation classes will apply the transform correctly relative to the new position
+                chatDialogWrapper.classList.remove('dialog-fade-out-scale');
+                chatDialogWrapper.classList.add('dialog-fade-in-scale');
 
-        function displayBills(amount) {
-            billDisplayArea.innerHTML = '';
-            if (amount <= 0 || isNaN(amount) || amount > 10000000) {
-                emptyState.classList.remove('opacity-0', 'pointer-events-none');
-                emptyState.classList.add('opacity-100');
-                const message = emptyState.querySelector('p:last-child');
-                if(message) {
-                    message.textContent = amount > 10000000 ? "金额过大，请尝试小一点的数字。" : "请输入有效金额（美元），我们将为您具象化。";
+
+                if (digitalHumanContainer && window.matchMedia('(min-width: 768px)').matches) {
+                    digitalHumanContainer.classList.remove('hidden');
+                    setTimeout(() => {
+                        digitalHumanContainer.style.opacity = '1';
+                        digitalHumanContainer.style.transform = 'translateY(0) scale(1)';
+                    }, 20);
                 }
-                emptyState.querySelector('p:first-child').textContent = "您的美元画卷";
-                return;
-            }
-            emptyState.classList.add('opacity-0', 'pointer-events-none');
-            emptyState.classList.remove('opacity-100');
 
-            let remainingAmount = amount;
-            const MAX_VISUAL_STACK = 7;
+            } else {
+                chatDialogWrapper.classList.add('dialog-fade-out-scale');
+                chatDialogWrapper.classList.remove('dialog-fade-in-scale');
+                setTimeout(() => {
+                    chatDialogWrapper.classList.add('hidden');
+                }, 300);
 
-            denominations.forEach(denom => {
-                if (remainingAmount >= denom.value) {
-                    const count = Math.floor(remainingAmount / denom.value);
-                    remainingAmount %= denom.value;
-
-                    const stackContainer = document.createElement('div');
-                    stackContainer.className = 'flex flex-col items-center mb-4 relative';
-
-                    const stackTitle = document.createElement('p');
-                    stackTitle.className = 'text-xs text-neutral-400 mb-2 font-light select-none';
-                    stackTitle.textContent = `$${denom.value} × ${count}`;
-                    stackContainer.appendChild(stackTitle);
-
-                    const billsWrapper = document.createElement('div');
-                    billsWrapper.className = 'relative flex justify-center items-center';
-                    const visualCount = Math.min(count, MAX_VISUAL_STACK);
-                    // Adjusted offsets for better stacking with uniform bill size
-                    const offsetXFactor = 0.08 * denom.width; // ~8% of width
-                    const offsetYFactor = 0.08 * denom.height; // ~8% of height
-
-                    const stackWidth = denom.width + (visualCount > 1 ? (visualCount - 1) * offsetXFactor : 0);
-                    const stackHeight = denom.height + (visualCount > 1 ? (visualCount - 1) * offsetYFactor : 0);
-                    billsWrapper.style.width = `${stackWidth}px`;
-                    billsWrapper.style.height = `${stackHeight}px`;
-
-                    for (let i = 0; i < visualCount; i++) {
-                        const billEl = createBillElement(denom);
-                        billEl.style.position = 'absolute';
-                        const offsetX = i * offsetXFactor;
-                        const offsetY = i * offsetYFactor;
-                        const randomMicroRotation = (Math.random() - 0.5) * 1.2;
-                        billEl.style.left = `${offsetX}px`;
-                        billEl.style.top = `${offsetY}px`;
-                        billEl.style.transform = `rotate(${randomMicroRotation}deg)`;
-                        billEl.style.zIndex = visualCount - i;
-
-                        billsWrapper.appendChild(billEl);
-                        setTimeout(() => {
-                            billEl.classList.add('bill-enter-active');
-                            billEl.classList.remove('bill-initial');
-                        }, (i * 40) + (denominations.indexOf(denom) * 100) );
-                    }
-
-                    if (count > MAX_VISUAL_STACK) {
-                        const lastVisibleBill = billsWrapper.children[billsWrapper.children.length-1];
-                        if (lastVisibleBill) {
-                            const moreIndicator = document.createElement('div');
-                            moreIndicator.className = 'absolute -top-1 -right-1 bg-red-600/90 text-white text-[10px] px-1.5 py-0.5 rounded-full shadow-lg select-none font-semibold';
-                            moreIndicator.textContent = `+${count - MAX_VISUAL_STACK}`;
-                            moreIndicator.style.zIndex = MAX_VISUAL_STACK + 1;
-                            lastVisibleBill.appendChild(moreIndicator);
+                if (digitalHumanContainer) {
+                    digitalHumanContainer.style.opacity = '0';
+                    digitalHumanContainer.style.transform = 'translateY(50px) scale(0.95)';
+                    setTimeout(() => {
+                        if (!isOpen && window.matchMedia('(min-width: 768px)').matches) {
+                             digitalHumanContainer.classList.add('hidden');
                         }
-                    }
-                    stackContainer.appendChild(billsWrapper);
-                    billDisplayArea.appendChild(stackContainer);
+                    }, 400);
                 }
-            });
+            }
         }
 
-        generateBillsButton.addEventListener('click', () => {
-            const amount = parseFloat(amountInput.value);
-            displayBills(amount);
-        });
-
-        clearButton.addEventListener('click', () => {
-            amountInput.value = '';
-            billDisplayArea.innerHTML = '';
-            emptyState.classList.remove('opacity-0', 'pointer-events-none');
-            emptyState.classList.add('opacity-100');
-            const message = emptyState.querySelector('p:last-child');
-            if(message) message.textContent = "请输入金额（美元），我们将为您具象化。";
-            emptyState.querySelector('p:first-child').textContent = "您的美元画卷";
-        });
-
-        emptyState.classList.add('opacity-100');
-
-        amountInput.addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                generateBillsButton.click();
+        setTimeout(() => {
+            const typingIndicator = document.querySelector('.typing-indicator');
+            if (typingIndicator) {
+                 const assistantBubble = typingIndicator.closest('.bg-slate-700\\/80');
+                 if(assistantBubble){
+                    const actualMessage = document.createElement('p');
+                    actualMessage.className = 'text-sm text-slate-200 pt-2';
+                    actualMessage.textContent = '根据数据显示，上个月用户总数增长了 15%，主要增长来源于新注册用户和市场推广活动带来的用户。详细报告已发送至您的邮箱。';
+                    typingIndicator.parentNode.insertBefore(actualMessage, typingIndicator);
+                    typingIndicator.remove();
+                 }
             }
-        });
+        }, 5000);
+
     </script>
+
 </body>
 </html>
