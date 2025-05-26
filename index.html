@@ -12,7 +12,7 @@
             font-family: "Alibaba PuHuiTi", "Noto Sans SC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
             background-image: url('https://cdn.sa.net/2025/05/26/nSXGlTPNBIhf8K6.jpg');
             background-size: cover;
-            background-position: center;
+            background-position: top center;
             background-repeat: no-repeat;
             min-height: 100vh;
             overflow: hidden;
@@ -58,7 +58,6 @@
             animation: dialogFadeOutScale 0.3s ease-in forwards;
         }
 
-        /* Animation for dialog centering based on its own size */
         @keyframes dialogFadeInScale {
             from { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
             to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
@@ -71,12 +70,12 @@
 
 
         .frosted-glass {
-            background-color: rgba(30, 41, 59, 0.8); /* bg-slate-800/80 */
+            background-color: rgba(30, 41, 59, 0.8);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
         }
         .chat-header-glass {
-            background-color: rgba(51, 65, 85, 0.85); /* bg-slate-700/85 */
+            background-color: rgba(51, 65, 85, 0.85);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
         }
@@ -90,12 +89,15 @@
 
         .default-avatar {
             width: 32px; height: 32px; border-radius: 50%;
-            background-color: #4A5568; /* gray-600 */
+            background-color: #4A5568;
             display: flex; align-items: center; justify-content: center;
-            border: 1px solid #718096; /* gray-500 */
+            border: 1px solid #718096;
         }
         .default-avatar .material-icons-outlined {
-            font-size: 20px; color: #E2E8F0; /* gray-300 */
+            font-size: 20px; color: #E2E8F0;
+        }
+        #page-mask {
+            transition: opacity 0.3s ease-in-out;
         }
 
     </style>
@@ -103,6 +105,10 @@
 <body class="antialiased text-gray-100">
 
     <div class="mockup-border"></div>
+
+    <!-- Page Mask -->
+    <div id="page-mask" class="fixed inset-0 bg-black/60 z-20 hidden opacity-0 pointer-events-none"></div>
+
 
     <!-- Static Icon Floating Action Button -->
     <div id="static-fab" class="fixed bottom-8 right-8 z-50 cursor-pointer p-4 rounded-full bg-sky-600 hover:bg-sky-500 shadow-xl flex items-center justify-center" onclick="toggleAssistant()" title="打开智慧助手">
@@ -112,10 +118,9 @@
     <!-- Chat Dialog Wrapper -->
     <div id="chat-dialog-wrapper"
          class="hidden fixed top-1/2 z-40"
-         style="left: calc(50% - 120px); /* MODIFIED: Shifted left by 120px */
-                transform: translate(-50%, -50%); /* Ensures the dialog is centered on this new 'left' point */">
+         style="left: calc(50% - 120px); transform: translate(-50%, -50%);">
         <!-- Chat Dialog -->
-        <div id="chat-dialog" class="w-[483px] h-[650px] frosted-glass rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-700/50">
+        <div id="chat-dialog" class="w-[483px] h-[85vh] frosted-glass rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-700/50">
             <!-- Dialog Header -->
             <div class="chat-header-glass p-4 flex items-center justify-between flex-shrink-0">
                 <div class="flex items-center">
@@ -181,6 +186,35 @@
                         <p class="text-xs text-slate-500 mt-2 text-right">2025-05-27 10:01:35</p>
                     </div>
                 </div>
+                <div class="flex">
+                    <div class="flex-shrink-0 mr-3">
+                        <img class="w-8 h-8 rounded-full border border-slate-600" src="https://cdn.sa.net/2025/05/26/UPA8DyTu6XzcBhY.png" alt="智慧助手头像">
+                    </div>
+                    <div class="bg-slate-700/80 p-3 rounded-lg rounded-tl-none shadow">
+                        <p class="text-sm text-slate-200">另外，本周的关键绩效指标 (KPI) 显示市场活动参与度提高了 25%。</p>
+                        <p class="text-xs text-slate-500 mt-2 text-right">2025-05-27 10:02:15</p>
+                    </div>
+                </div>
+                <div class="flex justify-end">
+                    <div class="bg-sky-600 p-3 rounded-lg rounded-br-none shadow max-w-[70%]">
+                        <p class="text-sm text-white">太棒了！请生成一份详细报告。</p>
+                        <p class="text-xs text-sky-200 mt-1 text-right">2025-05-27 10:03:00</p>
+                    </div>
+                     <div class="flex-shrink-0 ml-3">
+                        <div class="default-avatar" title="用户">
+                            <span class="material-icons-outlined">person_outline</span>
+                        </div>
+                    </div>
+                </div>
+                 <div class="flex">
+                    <div class="flex-shrink-0 mr-3">
+                        <img class="w-8 h-8 rounded-full border border-slate-600" src="https://cdn.sa.net/2025/05/26/UPA8DyTu6XzcBhY.png" alt="智慧助手头像">
+                    </div>
+                    <div class="bg-slate-700/80 p-3 rounded-lg rounded-tl-none shadow">
+                        <p class="text-sm text-slate-200">报告正在生成中，预计需要 30 秒。完成后将通过系统通知您。</p>
+                        <p class="text-xs text-slate-500 mt-2 text-right">2025-05-27 10:03:05</p>
+                    </div>
+                </div>
             </div>
 
             <!-- Input Area -->
@@ -198,18 +232,16 @@
 
     <!-- Digital Human Image Container -->
     <div id="digital-human-container"
-         class="fixed bottom-0 z-30 hidden md:block pointer-events-none"
-         style="left: calc(50% + 100px); /* Positioned relative to screen center */
-                opacity: 0;
-                transform: translateY(50px) scale(0.95);
-                transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease-out;">
-        <img src="https://cdn.sa.net/2025/05/26/IapOov2mdDZgMr4.png" alt="数字人智慧助手" class="h-auto max-h-[580px] object-contain drop-shadow-2xl">
+         class="fixed bottom-0 z-35 hidden md:block pointer-events-none"
+         style="left: calc(50% + 100px); opacity: 0; transform: translateY(50px) scale(0.95); transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease-out;">
+        <img src="https://cdn.sa.net/2025/05/26/IapOov2mdDZgMr4.png" alt="数字人智慧助手" class="h-auto max-h-[64vh] object-contain drop-shadow-2xl">
     </div>
 
 
     <script>
         const chatDialogWrapper = document.getElementById('chat-dialog-wrapper');
         const digitalHumanContainer = document.getElementById('digital-human-container');
+        const pageMask = document.getElementById('page-mask');
         let isOpen = false;
 
         if (digitalHumanContainer) {
@@ -221,14 +253,21 @@
         function toggleAssistant() {
             isOpen = !isOpen;
             if (isOpen) {
+                // Show Mask
+                pageMask.classList.remove('hidden');
+                pageMask.classList.remove('pointer-events-none') // Enable mask interaction if needed, or keep it none
+                setTimeout(() => pageMask.style.opacity = '1', 10); // Slight delay for transition
+
+
+                // Show Dialog
                 chatDialogWrapper.classList.remove('hidden');
-                // The animation classes will apply the transform correctly relative to the new position
                 chatDialogWrapper.classList.remove('dialog-fade-out-scale');
                 chatDialogWrapper.classList.add('dialog-fade-in-scale');
 
-
+                // Show Digital Human
                 if (digitalHumanContainer && window.matchMedia('(min-width: 768px)').matches) {
                     digitalHumanContainer.classList.remove('hidden');
+                    digitalHumanContainer.style.zIndex = '35'; // Ensure digital human is above mask
                     setTimeout(() => {
                         digitalHumanContainer.style.opacity = '1';
                         digitalHumanContainer.style.transform = 'translateY(0) scale(1)';
@@ -236,12 +275,21 @@
                 }
 
             } else {
+                // Hide Mask
+                pageMask.style.opacity = '0';
+                setTimeout(() => {
+                    pageMask.classList.add('hidden');
+                    pageMask.classList.add('pointer-events-none');
+                }, 300); // Match opacity transition duration
+
+                // Hide Dialog
                 chatDialogWrapper.classList.add('dialog-fade-out-scale');
                 chatDialogWrapper.classList.remove('dialog-fade-in-scale');
                 setTimeout(() => {
                     chatDialogWrapper.classList.add('hidden');
                 }, 300);
 
+                // Hide Digital Human
                 if (digitalHumanContainer) {
                     digitalHumanContainer.style.opacity = '0';
                     digitalHumanContainer.style.transform = 'translateY(50px) scale(0.95)';
@@ -254,6 +302,7 @@
             }
         }
 
+        // Example: Simulate assistant response
         setTimeout(() => {
             const typingIndicator = document.querySelector('.typing-indicator');
             if (typingIndicator) {
