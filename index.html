@@ -314,8 +314,7 @@
                 // Add completion message
                 const completionMessage = document.createElement('p');
                 completionMessage.className = 'text-sm text-green-400 pt-2'; // Using green to indicate success
-                completionMessage.textContent = '今日汽配注塑车间运营总结：
-产量为15000件，完成计划的98%。良品率95.5%，较上周提升0.3%。设备利用率82%，注塑机运行正常，无大规模停机。能耗总计2800千瓦时，较昨日降低2.1%。异常事件3起，包含2次模具卡料和1次冷却系统故障，均及时修复，未影响整体生产。总体运行平稳，建议加强模具维护及能耗监控，提升生产效率。';
+                completionMessage.textContent = '报告已生成，点击查看';
                 assistantLastResponseBubble.insertBefore(completionMessage, assistantLastResponseBubble.querySelector('.text-xs.text-slate-500'));
             }
         }, 7000); // Simulate report generation time (7 seconds)
