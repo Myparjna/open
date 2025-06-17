@@ -1,355 +1,317 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>【终版】HLS & Codec 深度检测</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【深度】HLS (m3u8) 浏览器底层支持检测</title>
     <!-- 引入 hls.js 库 -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-      body {
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-          Roboto, "Helvetica Neue", Arial, sans-serif;
-        line-height: 1.7;
-        color: #2c3e50;
-        max-width: 900px;
-        margin: 20px auto;
-        padding: 0 15px;
-        background-color: #ecf0f1;
-      }
-      .container {
-        background-color: #ffffff;
-        padding: 25px;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-        margin-bottom: 25px;
-      }
-      h1,
-      h2,
-      h3 {
-        color: #2c3e50;
-        border-bottom: 2px solid #3498db;
-        padding-bottom: 10px;
-      }
-      h1 {
-        font-size: 2em;
-      }
-      h2 {
-        font-size: 1.6em;
-        margin-top: 30px;
-      }
-      h3 {
-        font-size: 1.3em;
-        border-bottom: none;
-      }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.7;
+            color: #2c3e50;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 0 15px;
+            background-color: #ecf0f1;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h1 { font-size: 2em; }
+        h2 { font-size: 1.6em; margin-top: 30px;}
+        h3 { font-size: 1.3em; border-bottom: none;}
 
-      .detection-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 15px;
-      }
-      .detection-item {
-        padding: 15px;
-        border-radius: 8px;
-        border: 1px solid #bdc3c7;
-      }
-      .detection-item.highlight {
-        border-color: #e67e22;
-        background-color: #fff9f2;
-      }
-      .detection-item h4 {
-        margin: 0 0 10px 0;
-        color: #2980b9;
-      }
-      .detection-item p {
-        margin: 5px 0 0 0;
-        font-size: 0.9em;
-      }
+        .detection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        .detection-item {
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #bdc3c7;
+        }
+        .detection-item h4 {
+            margin: 0 0 10px 0;
+            color: #2980b9;
+        }
+        .detection-item p { margin: 5px 0 0 0; font-size: 0.9em; }
 
-      .video-tests {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 20px;
-      }
-      .video-card {
-        background: #f9f9f9;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 15px;
-        display: flex;
-        flex-direction: column;
-      }
-      .video-card video {
-        width: 100%;
-        background-color: #000;
-        border-radius: 5px;
-        margin-bottom: 10px;
-      }
-      .video-card-controls {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .video-card-controls button {
-        padding: 8px 15px;
-        border: none;
-        background-color: #3498db;
-        color: white;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-      }
-      .video-card-controls button:hover {
-        background-color: #2980b9;
-      }
-      .status {
-        font-weight: bold;
-        font-size: 0.9em;
-      }
+        .video-tests {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        .video-card {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+        .video-card video {
+            width: 100%;
+            background-color: #000;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .video-card-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .video-card-controls button {
+            padding: 8px 15px;
+            border: none;
+            background-color: #3498db;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .video-card-controls button:hover { background-color: #2980b9; }
+        .status { font-weight: bold; font-size: 0.9em; }
 
-      .success {
-        color: #27ae60;
-      }
-      .warning {
-        color: #f39c12;
-      }
-      .error {
-        color: #c0392b;
-      }
-      code {
-        background-color: #e8e8e8;
-        padding: 3px 6px;
-        border-radius: 4px;
-        font-family: "Courier New", Courier, monospace;
-        word-break: break-all;
-      }
-      .explanation {
-        background-color: #eaf5ff;
-        border-left: 5px solid #3498db;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
-      }
-      .special-note {
-        background-color: #fffbe6;
-        border-left: 5px solid #f1c40f;
-        padding: 15px;
-        margin-bottom: 20px;
-        border-radius: 5px;
-      }
+        .success { color: #27ae60; }
+        .warning { color: #f39c12; }
+        .error { color: #c0392b; }
+        code {
+            background-color: #e8e8e8;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-family: "Courier New", Courier, monospace;
+        }
+        .explanation {
+            background-color: #eaf5ff;
+            border-left: 5px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+         .special-note {
+            background-color: #fffbe6;
+            border-left: 5px solid #f1c40f;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
     </style>
-  </head>
-  <body>
+</head>
+<body>
+
     <div class="container">
-      <h1>【终版】HLS & Codec 深度检测</h1>
-      <p>此页面专用于检测浏览器对特定HLS流和高级视频编码格式的支持情况。</p>
+        <h1>【深度】HLS (m3u8) 浏览器底层支持检测</h1>
+        <p>此页面通过检测浏览器底层的多项Web API，来深入分析其对HLS视频流的播放能力，并解释其背后的技术原因。</p>
     </div>
 
     <div class="container">
-      <h2>第一步：浏览器底层能力与编码格式检测</h2>
-      <div class="detection-grid" id="detection-results">
-        <!-- 底层能力检测结果将动态插入此处 -->
-      </div>
-      <div class="explanation">
-        <h4>关键项解读：</h4>
-        <ul>
-          <li>
-            <strong>Media Source Extensions (MSE):</strong>
-            <code>hls.js</code> 运行的绝对基石。如果不支持，一切免谈。
-          </li>
-          <li>
-            <strong>Codec: H.264 + AAC (YUV 4:2:0):</strong>
-            这是网页视频的“普通话”，几乎所有设备都支持。用于确定基础播放能力。
-          </li>
-          <li>
-            <strong>Codec: H.264 Planar YUV 4:4:4:</strong>
-            <strong>这是本次的重点检测项。</strong> YUV 4:4:4
-            是一种无色度抽样的全色深格式，画质保真度最高，常用于专业视频制作领域，但它**极少**被用于网络流媒体，因为文件体积大，且绝大多数消费级硬件（包括手机/Pad）的解码芯片都不支持对它进行硬件加速。浏览器很可能会报告“不支持”，这是**完全正常且预期内**的情况。
-          </li>
-        </ul>
-      </div>
+        <h2>第一步：浏览器底层能力检测</h2>
+        <div class="detection-grid" id="detection-results">
+            <!-- 底层能力检测结果将动态插入此处 -->
+        </div>
+        <div class="explanation">
+            <h4>关键API解读：</h4>
+            <ul>
+                <li><strong>原生HLS支持:</strong> 这是浏览器自身解码m3u8的能力，主要存在于Apple的Safari浏览器。</li>
+                <li><strong>Media Source Extensions (MSE):</strong> <strong>这是最重要的API</strong>。它允许JavaScript代码动态地将媒体片段（如.ts文件）喂给<code><video></code>标签。<code>hls.js</code>库完全依赖此API工作。<strong>如果浏览器不支持MSE，<code>hls.js</code>就无法运行。</strong></li>
+                <li><strong>H.264/AVC + AAC Codec 支持:</strong> 即使支持MSE，浏览器也必须能解码视频流内的音视频编码。H.264(视频)和AAC(音频)是最常见的组合。如果不支持，视频将无法播放。</li>
+                <li><strong>Encrypted Media Extensions (EME):</strong> 用于播放受DRM（数字版权管理）保护的加密内容。对于常规的HLS流不是必需的，但对于付费内容平台很重要。</li>
+            </ul>
+        </div>
     </div>
 
     <div class="container">
-      <h2>第二步：播放测试</h2>
-      <div class="special-note">
-        <p>
-          <strong>重要提示:</strong> 如果您的视频流 (<code>http://...</code>)
-          播放失败，但下方的“标准对比流”播放成功，问题几乎可以锁定在您视频流的两个方面：
-        </p>
-        <ol>
-          <li>
-            <strong>服务器配置问题:</strong> 最常见的是 CORS
-            跨域策略没开，或链接本身已失效。请按F12打开开发者工具的“控制台”查看报错。
-          </li>
-          <li>
-            <strong>视频编码问题:</strong> 如果您的视频流确实使用了 YUV 4:4:4
-            编码，而上方的检测结果显示浏览器不支持该编码，那么视频无法播放是必然的。
-          </li>
-        </ol>
-      </div>
-      <div class="video-tests" id="video-tests-container">
-        <!-- 视频测试卡片将动态插入此处 -->
-      </div>
+        <h2>第二步：多场景播放测试</h2>
+        <div class="special-note">
+            <p><strong>重要提示:</strong> 您提供的 <code>http://...</code> 链接在某些情况下可能无法加载。常见原因包括：</p>
+            <ol>
+                <li><strong>CORS 策略：</strong> 视频服务器 (<code>58.250.95.50</code>) 没有正确配置，不允许来自您当前域名（或本地文件 <code>file://</code>）的跨域请求。</li>
+                <li><strong>混合内容 (Mixed Content)：</strong> 如果您将此HTML页面部署在一个 <code>https://</code> 的安全网站上，现代浏览器会出于安全原因，阻止加载不安全的 <code>http://</code> 视频资源。</li>
+            </ol>
+            <p>请按F12打开浏览器开发者工具，在“控制台(Console)”和“网络(Network)”面板中查看具体的错误信息，这有助于定位问题。</p>
+        </div>
+        <div class="video-tests" id="video-tests-container">
+            <!-- 视频测试卡片将动态插入此处 -->
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>最终分析与结论</h2>
+        <div class="explanation">
+            <h3 id="final-conclusion-title">分析中...</h3>
+            <p id="final-conclusion-text">请查看上方的检测结果和播放测试以得出结论。</p>
+            <p><strong>根本原因总结：</strong> 移动端或桌面版的Chrome/Firefox之所以不能“原生”播放m3u8，是因为它们的设计哲学是将这种非标准的流媒体协议交由JavaScript库处理，而不是内置到浏览器核心。它们提供了强大的MSE API作为“钩子”，让<code>hls.js</code>这样的库能够高效地完成解析和播放任务。因此，“不支持”原生HLS并非缺陷，而是架构选择，而**“支持MSE”才是决定m3u8能否在这些浏览器中播放的关键**。</p>
+        </div>
     </div>
 
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const detectionResultsContainer =
-          document.getElementById("detection-results");
-        const videoTestsContainer = document.getElementById(
-          "video-tests-container"
-        );
-        let hlsInstances = {};
+        document.addEventListener('DOMContentLoaded', function() {
+            const detectionResultsContainer = document.getElementById('detection-results');
+            const videoTestsContainer = document.getElementById('video-tests-container');
+            let hlsInstances = {}; // 使用对象存储多个hls实例
 
-        // --- 底层能力检测逻辑 ---
-        function runDetections() {
-          const results = {};
+            // --- 底层能力检测逻辑 ---
+            function runDetections() {
+                const results = {};
+                const tempVideo = document.createElement('video');
 
-          // 1. Media Source Extensions (MSE)
-          results["Media Source Extensions (MSE)"] = {
-            supported: "MediaSource" in window || "WebKitMediaSource" in window,
-            description: "允许JS喂给video标签媒体数据，hls.js的基石。",
-          };
+                // 1. 原生HLS支持
+                results['Native HLS'] = {
+                    supported: !!tempVideo.canPlayType('application/vnd.apple.mpegurl'),
+                    description: '浏览器是否能直接播放m3u8 MIME类型。'
+                };
 
-          // 2. Common Codec Support (YUV 4:2:0)
-          const commonCodec = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"';
-          results[`Codec: H.264 + AAC (YUV 4:2:0)`] = {
-            supported: window.MediaSource
-              ? MediaSource.isTypeSupported(commonCodec)
-              : false,
-            description: `测试网页最常见的H.264 Main Profile + AAC编码。`,
-          };
+                // 2. Media Source Extensions (MSE)
+                results['Media Source Extensions (MSE)'] = {
+                    supported: 'MediaSource' in window || 'WebKitMediaSource' in window,
+                    description: '允许JS喂给video标签媒体数据，hls.js的基石。'
+                };
 
-          // 3. SPECIALIZED Codec Support (YUV 4:4:4)
-          // avc1.f4401e 代表 H.264 High 4:4:4 Predictive Profile, Level 3.0
-          const yuv444Codec = 'video/mp4; codecs="avc1.f4401e"';
-          results[`Codec: H.264 Planar YUV 4:4:4`] = {
-            supported: window.MediaSource
-              ? MediaSource.isTypeSupported(yuv444Codec)
-              : false,
-            description: `测试专业的H.264 High 4:4:4 Profile。在绝大多数浏览器中预期为“不支持”。`,
-            highlight: true,
-          };
+                // 3. EME (Encrypted Media Extensions)
+                results['Encrypted Media Extensions (EME)'] = {
+                    supported: 'requestMediaKeySystemAccess' in navigator,
+                    description: '支持播放受DRM保护的加密内容。'
+                };
 
-          return results;
-        }
-
-        function displayDetections(results) {
-          for (const key in results) {
-            const item = results[key];
-            const itemDiv = document.createElement("div");
-            itemDiv.className = "detection-item";
-            if (item.highlight) {
-              itemDiv.classList.add("highlight");
+                // 4. Codec Support (via MSE)
+                const commonCodec = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"'; // H.264 Main + AAC-LC
+                results[`Codec: H.264 + AAC`] = {
+                    supported: window.MediaSource ? MediaSource.isTypeSupported(commonCodec) : false,
+                    description: `是否支持最常见的HLS音视频编码 (${commonCodec})。`
+                };
+                
+                return results;
             }
 
-            const statusClass = item.supported ? "success" : "error";
-            const statusIcon = item.supported ? "✅" : "❌";
+            function displayDetections(results) {
+                for (const key in results) {
+                    const item = results[key];
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'detection-item';
+                    
+                    const statusClass = item.supported ? 'success' : 'error';
+                    const statusIcon = item.supported ? '✅' : '❌';
 
-            itemDiv.innerHTML = `
+                    itemDiv.innerHTML = `
                         <h4>${key}</h4>
-                        <p class="status ${statusClass}">${statusIcon} ${
-              item.supported ? "支持" : "不支持"
-            }</p>
+                        <p class="status ${statusClass}">${statusIcon} ${item.supported ? '支持' : '不支持'}</p>
                         <p>${item.description}</p>
                     `;
-            detectionResultsContainer.appendChild(itemDiv);
-          }
-        }
+                    detectionResultsContainer.appendChild(itemDiv);
+                }
+            }
+            
+            const detectionResults = runDetections();
+            displayDetections(detectionResults);
 
-        const detectionResults = runDetections();
-        displayDetections(detectionResults);
+            // --- 视频播放测试逻辑 ---
+            const testStreams = [
+                { name: '用户指定测试流 (HTTP)', url: 'http://58.250.95.50:10007/pz0001/pz0001/hls.m3u8' },
+                { name: '标准对比流 (HTTPS)', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8' },
+                { name: '可能失败的URL (无效链接)', url: 'https://example.com/not-a-video.m3u8' }
+            ];
 
-        // --- 视频播放测试逻辑 ---
-        const testStreams = [
-          {
-            name: "您的指定测试流",
-            url: "http://58.250.95.50:10007/pz0001/pz0001/hls.m3u8",
-          },
-          {
-            name: "标准对比流 (YUV 4:2:0)",
-            url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
-          },
-        ];
-
-        testStreams.forEach((stream, index) => {
-          const card = document.createElement("div");
-          card.className = "video-card";
-          card.innerHTML = `
+            testStreams.forEach((stream, index) => {
+                const card = document.createElement('div');
+                card.className = 'video-card';
+                card.innerHTML = `
                     <h3>${stream.name}</h3>
-                    <p style="font-size:0.8em; word-break:break-all;">URL: <code>${stream.url}</code></p>
+                    <p style="font-size:0.8em; word-break:break-all;">URL: ${stream.url}</p>
                     <video id="video-${index}" controls muted playsinline></video>
                     <div class="video-card-controls">
-                        <button data-url="${stream.url}" data-video-id="video-${index}" data-index="${index}">加载并播放</button>
+                        <button data-url="${stream.url}" data-video-id="video-${index}" data-status-id="status-${index}" data-index="${index}">加载并播放</button>
                         <div class="status" id="status-${index}">状态: 准备就绪</div>
                     </div>
                 `;
-          videoTestsContainer.appendChild(card);
-        });
+                videoTestsContainer.appendChild(card);
+            });
 
-        videoTestsContainer.addEventListener("click", function (e) {
-          if (e.target.tagName === "BUTTON") {
-            const button = e.target;
-            const url = button.dataset.url;
-            const videoId = button.dataset.videoId;
-            const index = button.dataset.index;
-            const video = document.getElementById(videoId);
-            const statusEl = document.getElementById(`status-${index}`);
+            videoTestsContainer.addEventListener('click', function(e) {
+                if (e.target.tagName === 'BUTTON') {
+                    const button = e.target;
+                    const url = button.dataset.url;
+                    const videoId = button.dataset.videoId;
+                    const statusId = button.dataset.statusId;
+                    const index = button.dataset.index;
+                    const video = document.getElementById(videoId);
+                    const statusEl = document.getElementById(statusId);
 
-            if (hlsInstances[index]) {
-              hlsInstances[index].destroy();
-            }
+                    // 销毁当前卡片可能存在的旧实例
+                    if (hlsInstances[index]) {
+                        hlsInstances[index].destroy();
+                    }
 
-            if (Hls.isSupported()) {
-              statusEl.textContent = "状态: 加载中...";
-              statusEl.className = "status warning";
+                    if (Hls.isSupported()) {
+                        statusEl.textContent = '状态: 加载中...';
+                        statusEl.className = 'status warning';
 
-              const hls = new Hls({
-                // 开启Debug模式可以在控制台看到更详细的hls.js日志
-                // debug: true
-              });
-              hlsInstances[index] = hls;
-              hls.loadSource(url);
-              hls.attachMedia(video);
+                        const hls = new Hls();
+                        hlsInstances[index] = hls; // 存储新实例
+                        hls.loadSource(url);
+                        hls.attachMedia(video);
 
-              hls.on(Hls.Events.MANIFEST_PARSED, function () {
-                statusEl.textContent = "状态: 播放中";
-                statusEl.className = "status success";
-                video.play().catch((err) => {
-                  statusEl.textContent = "状态: 点击视频播放";
-                  statusEl.className = "status warning";
-                });
-              });
-
-              hls.on(Hls.Events.ERROR, function (event, data) {
-                if (data.fatal) {
-                  let errorReason = "";
-                  switch (data.type) {
-                    case Hls.ErrorTypes.NETWORK_ERROR:
-                      errorReason = `网络错误 (${data.details})。请检查CORS或链接。`;
-                      break;
-                    case Hls.ErrorTypes.MEDIA_ERROR:
-                      // 这个错误最可能与编码有关！
-                      errorReason = `媒体错误 (${data.details})。极可能是视频编码不受支持！`;
-                      hls.recoverMediaError();
-                      break;
-                    default:
-                      errorReason = `致命错误 (${data.details})`;
-                      hls.destroy();
-                      break;
-                  }
-                  statusEl.textContent = `错误: ${errorReason}`;
-                  statusEl.className = "status error";
+                        hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                            statusEl.textContent = '状态: 播放中';
+                            statusEl.className = 'status success';
+                            video.play().catch(err => {
+                                console.warn(`视频 [${videoId}] 播放被阻止，可能需要用户交互。`, err);
+                                statusEl.textContent = '状态: 点击视频播放';
+                                statusEl.className = 'status warning';
+                            });
+                        });
+                        
+                        hls.on(Hls.Events.ERROR, function(event, data) {
+                             if (data.fatal) {
+                                let errorReason = '';
+                                switch(data.type) {
+                                    case Hls.ErrorTypes.NETWORK_ERROR:
+                                        errorReason = `网络错误: ${data.details}. (请检查CORS或链接是否有效)`;
+                                        break;
+                                    case Hls.ErrorTypes.MEDIA_ERROR:
+                                        errorReason = `媒体错误: ${data.details}. (视频编码或容器问题)`;
+                                        hls.recoverMediaError();
+                                        break;
+                                    default:
+                                        errorReason = `致命错误: ${data.details}`;
+                                        hls.destroy();
+                                        break;
+                                }
+                                statusEl.textContent = `错误: ${errorReason}`;
+                                statusEl.className = 'status error';
+                             }
+                        });
+                    } else {
+                        statusEl.textContent = '错误: hls.js 不被支持';
+                        statusEl.className = 'status error';
+                    }
                 }
-              });
+            });
+
+            // --- 更新最终结论 ---
+            const conclusionTitle = document.getElementById('final-conclusion-title');
+            const conclusionText = document.getElementById('final-conclusion-text');
+            if (detectionResults['Media Source Extensions (MSE)'].supported) {
+                conclusionTitle.textContent = '结论：浏览器兼容 ✅';
+                conclusionTitle.className = 'success';
+                conclusionText.textContent = '您的浏览器支持 Media Source Extensions (MSE) 和必要的编解码器。这意味着它可以通过 hls.js 库完美地播放 m3u8 视频流，这也是在非 Safari 浏览器上的标准解决方案。';
             } else {
-              statusEl.textContent = "错误: hls.js 不被支持";
-              statusEl.className = "status error";
+                conclusionTitle.textContent = '结论：浏览器不兼容 ❌';
+                conclusionTitle.className = 'error';
+                conclusionText.textContent = '您的浏览器不支持 Media Source Extensions (MSE)，这是 hls.js 运行的必要条件。因此，无法在此浏览器上通过 JavaScript 库播放 HLS。如果原生HLS支持也为“否”，则此浏览器无法播放 m3u8 视频。';
             }
-          }
         });
-      });
     </script>
-  </body>
+</body>
 </html>
