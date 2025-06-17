@@ -1,325 +1,198 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智慧助手</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HLS (m3u8) 播放支持检测页面</title>
+    <!-- 引入 hls.js 库 -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        body {
-            font-family: "Alibaba PuHuiTi", "Noto Sans SC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-            background-image: url('https://cdn.sa.net/2025/05/26/nSXGlTPNBIhf8K6.jpg');
-            background-size: cover;
-            background-position: top center;
-            background-repeat: no-repeat;
-            min-height: 100vh;
-            overflow: hidden;
-        }
-        .mockup-border {
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            right: 8px;
-            bottom: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            pointer-events: none;
-        }
-
-        .chat-messages::-webkit-scrollbar {
-            width: 6px;
-        }
-        .chat-messages::-webkit-scrollbar-track {
-            background: rgba(0,0,0,0.1);
-            border-radius: 10px;
-        }
-        .chat-messages::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.3);
-            border-radius: 10px;
-        }
-        .chat-messages::-webkit-scrollbar-thumb:hover {
-            background: rgba(255,255,255,0.5);
-        }
-
-        #static-fab {
-            transition: transform 0.2s ease-in-out, background-color 0.3s ease-in-out;
-        }
-        #static-fab:hover {
-            transform: scale(1.1);
-        }
-
-        .dialog-fade-in-scale {
-            animation: dialogFadeInScale 0.3s ease-out forwards;
-        }
-
-        .dialog-fade-out-scale {
-            animation: dialogFadeOutScale 0.3s ease-in forwards;
-        }
-
-        @keyframes dialogFadeInScale {
-            from { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
-            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-        }
-
-        @keyframes dialogFadeOutScale {
-            from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-            to { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
-        }
-
-
-        .frosted-glass {
-            background-color: rgba(30, 41, 59, 0.8);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
-        .chat-header-glass {
-            background-color: rgba(51, 65, 85, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
-        .material-icons, .material-icons-outlined {
-            font-size: inherit;
-        }
-        .icon-xs { font-size: 12px; }
-        .icon-sm { font-size: 20px; }
-        .icon-md { font-size: 24px; }
-        .icon-lg { font-size: 36px; }
-
-        .default-avatar {
-            width: 32px; height: 32px; border-radius: 50%;
-            background-color: #4A5568;
-            display: flex; align-items: center; justify-content: center;
-            border: 1px solid #718096;
-        }
-        .default-avatar .material-icons-outlined {
-            font-size: 20px; color: #E2E8F0;
-        }
-        #page-mask {
-            transition: opacity 0.3s ease-in-out;
-        }
-
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 0 15px;
+        background-color: #f4f4f4;
+      }
+      .container {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      h1,
+      h2 {
+        border-bottom: 2px solid #eee;
+        padding-bottom: 10px;
+        color: #1a1a1a;
+      }
+      #videoPlayer {
+        width: 100%;
+        max-width: 100%;
+        background-color: #000;
+        border-radius: 5px;
+      }
+      #results p {
+        padding: 10px;
+        border-radius: 5px;
+        margin: 10px 0;
+      }
+      .success {
+        background-color: #e8f5e9; /* 浅绿色 */
+        color: #2e7d32;
+        border-left: 5px solid #4caf50;
+      }
+      .warning {
+        background-color: #fff3e0; /* 浅橙色 */
+        color: #e65100;
+        border-left: 5px solid #ff9800;
+      }
+      .error {
+        background-color: #ffebee; /* 浅红色 */
+        color: #c62828;
+        border-left: 5px solid #f44336;
+      }
+      code {
+        background-color: #eee;
+        padding: 2px 4px;
+        border-radius: 3px;
+      }
     </style>
-</head>
-<body class="antialiased text-gray-100">
+  </head>
+  <body>
+    <div class="container">
+      <h1>HLS (m3u8) 播放支持检测</h1>
+      <p>
+        此页面用于检测您的浏览器是否支持 HLS (HTTP Live Streaming)
+        视频流播放。HLS 是苹果公司推出的流媒体协议，其索引文件格式为
+        <code>.m3u8</code>，视频分片为 <code>.ts</code>。
+      </p>
+      <p>
+        <strong>核心问题：</strong> 为什么移动端 Chrome 可能无法直接播放
+        m3u8？因为 HLS 是苹果的标准，只有 Safari 和 iOS
+        系统下的浏览器提供强大的原生支持。其他浏览器（如 Android/桌面版的
+        Chrome, Firefox）则需要借助 JavaScript 库（如
+        <code>hls.js</code>）来解析 m3u8 文件并播放。
+      </p>
 
-    <div class="mockup-border"></div>
+      <h2>检测结果</h2>
+      <div id="results">
+        <!-- 检测结果将动态插入这里 -->
+      </div>
 
-    <!-- Page Mask -->
-    <div id="page-mask" class="fixed inset-0 bg-black/60 z-20 hidden opacity-0 pointer-events-none"></div>
+      <h2>视频播放测试</h2>
+      <p>
+        下方将尝试加载一个公开的 m3u8
+        测试流。如果看到视频画面并能播放，则说明您的浏览器（通过原生或
+        hls.js）具备播放能力。
+      </p>
+      <video id="videoPlayer" controls></video>
 
-
-    <!-- Static Icon Floating Action Button -->
-    <div id="static-fab" class="fixed bottom-8 right-8 z-50 cursor-pointer p-4 rounded-full bg-sky-600 hover:bg-sky-500 shadow-xl flex items-center justify-center" onclick="toggleAssistant()" title="打开智慧助手">
-        <span class="material-icons-outlined icon-lg text-white">support_agent</span>
+      <h2>结果解读与最终结论</h2>
+      <div id="conclusion">
+        <p>
+          <strong>1. 如果“原生支持”为“支持”：</strong>
+          恭喜！您的浏览器（很可能是 Safari）可以直接播放
+          m3u8，无需任何额外工具。
+        </p>
+        <p>
+          <strong
+            >2. 如果“原生支持”为“不支持”，但“Hls.js 支持”为“支持”：</strong
+          >
+          这是最常见的情况，尤其是在 Chrome 和 Firefox
+          上。这说明浏览器本身不直接解码
+          m3u8，但它提供了必要的“媒体源扩展（MSE）”API，让
+          <code>hls.js</code> 这样的库能够接管并完成播放。<strong
+            >这是在非苹果浏览器上播放 m3u8 的标准解决方案。</strong
+          >
+        </p>
+        <p>
+          <strong>3. 如果两者都不支持：</strong>
+          您可能在使用一个非常老旧或特殊的浏览器，它既没有原生 HLS
+          支持，也不支持运行 <code>hls.js</code> 所需的
+          MSE。在这种情况下，无法播放 HLS 视频。
+        </p>
+        <hr />
+        <h4><strong>最终结论：</strong></h4>
+        <p class="success">
+          对于您提到的“移动端pad手机的chrome播放不了m3u8”的问题，原因正是因为
+          Chrome 不提供原生 HLS 支持。<strong
+            >解决方案就是在您的网页项目中集成 <code>hls.js</code> 库</strong
+          >。这个页面本身就是一个最佳实践的例子：优先检测原生能力，如果不行，则自动启用
+          <code>hls.js</code> 作为后备方案。
+        </p>
+      </div>
     </div>
-
-    <!-- Chat Dialog Wrapper -->
-    <div id="chat-dialog-wrapper"
-         class="hidden fixed top-1/2 z-40"
-         style="left: calc(50% - 120px); transform: translate(-50%, -50%);">
-        <!-- Chat Dialog -->
-        <div id="chat-dialog" class="w-[483px] h-[85vh] frosted-glass rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-700/50">
-            <!-- Dialog Header -->
-            <div class="chat-header-glass p-4 flex items-center justify-between flex-shrink-0">
-                <div class="flex items-center">
-                    <img src="https://cdn.sa.net/2025/05/26/UPA8DyTu6XzcBhY.png" alt="智慧助手头像" class="w-10 h-10 rounded-full border-2 border-sky-400">
-                    <div class="ml-3">
-                        <h3 class="font-semibold text-lg text-white">智慧助手</h3>
-                        <p class="text-xs text-green-400 flex items-center">
-                            <span class="material-icons-outlined icon-xs text-green-400 mr-1">fiber_manual_record</span>在线
-                        </p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-1">
-                     <button class="text-slate-400 hover:text-white transition-colors p-1.5 rounded-full hover:bg-slate-700/50" title="最小化">
-                        <span class="material-icons-outlined icon-sm">remove</span>
-                    </button>
-                    <button onclick="toggleAssistant()" class="text-slate-400 hover:text-white transition-colors p-1.5 rounded-full hover:bg-slate-700/50" title="关闭">
-                        <span class="material-icons-outlined icon-sm">close</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Chat Messages Area -->
-            <div class="chat-messages flex-grow p-6 space-y-6 overflow-y-auto">
-                <!-- Conversation Turn 1: User -->
-                <div class="flex justify-end">
-                    <div class="bg-sky-600 p-3 rounded-lg rounded-br-none shadow max-w-[70%]">
-                        <p class="text-sm text-white">你好，我想了解一下工厂数据大屏的相关信息，特别是关于智慧助手的功能。</p>
-                        <p class="text-xs text-sky-200 mt-1 text-right">2025-05-27 10:00:00</p>
-                    </div>
-                     <div class="flex-shrink-0 ml-3">
-                        <div class="default-avatar" title="用户">
-                            <span class="material-icons-outlined">person_outline</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Conversation Turn 1: Assistant -->
-                <div class="flex">
-                    <div class="flex-shrink-0 mr-3">
-                        <img class="w-8 h-8 rounded-full border border-slate-600" src="https://cdn.sa.net/2025/05/26/UPA8DyTu6XzcBhY.png" alt="智慧助手头像">
-                    </div>
-                    <div class="bg-slate-700/80 p-3 rounded-lg rounded-tl-none shadow max-w-[80%]">
-                        <p class="text-sm text-slate-200">您好！工厂数据大屏的智慧助手是一个集数据可视化、智能分析和实时监控于一体的智能系统。它能够实时展示工厂的各项关键指标，如生产进度、设备状态、质量控制等。</p>
-                        <p class="text-xs text-slate-500 mt-2 text-right">2025-05-27 10:00:35</p>
-                    </div>
-                </div>
-
-                <!-- Conversation Turn 2: User -->
-                <div class="flex justify-end">
-                    <div class="bg-sky-600 p-3 rounded-lg rounded-br-none shadow max-w-[70%]">
-                        <p class="text-sm text-white">我看到工厂数据大屏上显示的设备生产率指标突然下降了，你能帮我分析一下可能的原因吗？</p>
-                        <p class="text-xs text-sky-200 mt-1 text-right">2025-05-27 10:01:30</p>
-                    </div>
-                     <div class="flex-shrink-0 ml-3">
-                        <div class="default-avatar" title="用户">
-                            <span class="material-icons-outlined">person_outline</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Conversation Turn 2: Assistant -->
-                <div class="flex">
-                    <div class="flex-shrink-0 mr-3">
-                        <img class="w-8 h-8 rounded-full border border-slate-600" src="https://cdn.sa.net/2025/05/26/UPA8DyTu6XzcBhY.png" alt="智慧助手头像">
-                    </div>
-                    <div class="bg-slate-700/80 p-3 rounded-lg rounded-tl-none shadow max-w-[80%]">
-                        <p class="text-sm text-slate-200">您好！设备 OEE 指标的突然下降可能由多种因素引起。以下是一些常见的原因及分析：设备故障或停机、生产速度降低、产品质量问题、计划外停机。</p>
-                         <!-- Removed typing indicator for this static example, you can add it back if simulating live typing -->
-                        <p class="text-xs text-slate-500 mt-2 text-right">2025-05-27 10:02:15</p>
-                    </div>
-                </div>
-
-                <!-- Conversation Turn 3: User -->
-                <div class="flex justify-end">
-                    <div class="bg-sky-600 p-3 rounded-lg rounded-br-none shadow max-w-[70%]">
-                        <p class="text-sm text-white">好的，那请帮我生成一份今日工厂运营情况的总结报告。</p>
-                        <p class="text-xs text-sky-200 mt-1 text-right">2025-05-27 10:03:00</p>
-                    </div>
-                     <div class="flex-shrink-0 ml-3">
-                        <div class="default-avatar" title="用户">
-                            <span class="material-icons-outlined">person_outline</span>
-                        </div>
-                    </div>
-                </div>
-                 <!-- Conversation Turn 3: Assistant -->
-                <div class="flex">
-                    <div class="flex-shrink-0 mr-3">
-                        <img class="w-8 h-8 rounded-full border border-slate-600" src="https://cdn.sa.net/2025/05/26/UPA8DyTu6XzcBhY.png" alt="智慧助手头像">
-                    </div>
-                    <div class="bg-slate-700/80 p-3 rounded-lg rounded-tl-none shadow max-w-[80%]" id="assistant-last-response">
-                        <p class="text-sm text-slate-200">好的，正在为您生成今日工厂运营情况总结报告。报告将包括今日产量、良品率、设备利用率、能耗情况以及异常事件汇总。请稍等。</p>
-                        <div class="flex items-center space-x-1 mt-2 typing-indicator-final">
-                            <span class="text-xs text-slate-400">正在生成报告</span>
-                            <div class="w-1.5 h-1.5 bg-sky-400 rounded-full animate-pulse delay-75"></div>
-                            <div class="w-1.5 h-1.5 bg-sky-400 rounded-full animate-pulse delay-150"></div>
-                            <div class="w-1.5 h-1.5 bg-sky-400 rounded-full animate-pulse delay-300"></div>
-                        </div>
-                        <p class="text-xs text-slate-500 mt-2 text-right">2025-05-27 10:03:05</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Input Area -->
-            <div class="chat-header-glass p-4 flex items-center space-x-3 flex-shrink-0 border-t border-slate-700/50">
-                <input type="text" placeholder="请输入您的问题或指令..." class="flex-grow bg-slate-800/50 border border-slate-600 text-slate-200 placeholder-slate-500 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 py-2.5 px-4 outline-none transition-all">
-                <button class="p-2 text-slate-400 hover:text-sky-400 transition-colors rounded-full hover:bg-slate-700/50" title="语音输入">
-                     <span class="material-icons-outlined icon-sm">mic</span>
-                </button>
-                <button class="bg-sky-600 hover:bg-sky-500 text-white p-2.5 rounded-lg transition-colors shadow hover:shadow-md" title="发送">
-                    <span class="material-icons icon-sm">send</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Digital Human Image Container -->
-    <div id="digital-human-container"
-         class="fixed bottom-0 z-35 hidden md:block pointer-events-none"
-         style="left: calc(50% + 100px); opacity: 0; transform: translateY(50px) scale(0.95); transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease-out;">
-        <img src="https://cdn.sa.net/2025/05/26/IapOov2mdDZgMr4.png" alt="数字人智慧助手" class="h-auto max-h-[64vh] object-contain drop-shadow-2xl">
-    </div>
-
 
     <script>
-        const chatDialogWrapper = document.getElementById('chat-dialog-wrapper');
-        const digitalHumanContainer = document.getElementById('digital-human-container');
-        const pageMask = document.getElementById('page-mask');
-        let isOpen = false;
+      document.addEventListener("DOMContentLoaded", function () {
+        const resultsDiv = document.getElementById("results");
+        const video = document.getElementById("videoPlayer");
+        const m3u8Url = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"; // 一个公开的、允许跨域的测试URL
 
-        if (digitalHumanContainer) {
-            digitalHumanContainer.classList.add('hidden');
-            digitalHumanContainer.style.opacity = '0';
-            digitalHumanContainer.style.transform = 'translateY(50px) scale(0.95)';
+        // --- 步骤 1: 检测原生支持 ---
+        const pNative = document.createElement("p");
+        // 'application/vnd.apple.mpegurl' 是HLS的官方MIME类型
+        if (video.canPlayType("application/vnd.apple.mpegurl")) {
+          pNative.innerHTML =
+            "<strong>✅ 原生支持检测:</strong> 支持 (浏览器可以直接处理 m3u8)";
+          pNative.className = "success";
+        } else {
+          pNative.innerHTML =
+            "<strong>⚠️ 原生支持检测:</strong> 不支持 (这是 Chrome/Firefox 等浏览器的正常情况)";
+          pNative.className = "warning";
         }
+        resultsDiv.appendChild(pNative);
 
-        function toggleAssistant() {
-            isOpen = !isOpen;
-            if (isOpen) {
-                pageMask.classList.remove('hidden');
-                pageMask.classList.remove('pointer-events-none')
-                setTimeout(() => pageMask.style.opacity = '1', 10);
-
-
-                chatDialogWrapper.classList.remove('hidden');
-                chatDialogWrapper.classList.remove('dialog-fade-out-scale');
-                chatDialogWrapper.classList.add('dialog-fade-in-scale');
-
-                if (digitalHumanContainer && window.matchMedia('(min-width: 768px)').matches) {
-                    digitalHumanContainer.classList.remove('hidden');
-                    digitalHumanContainer.style.zIndex = '35';
-                    setTimeout(() => {
-                        digitalHumanContainer.style.opacity = '1';
-                        digitalHumanContainer.style.transform = 'translateY(0) scale(1)';
-                    }, 20);
-                }
-
-            } else {
-                pageMask.style.opacity = '0';
-                setTimeout(() => {
-                    pageMask.classList.add('hidden');
-                    pageMask.classList.add('pointer-events-none');
-                }, 300);
-
-                chatDialogWrapper.classList.add('dialog-fade-out-scale');
-                chatDialogWrapper.classList.remove('dialog-fade-in-scale');
-                setTimeout(() => {
-                    chatDialogWrapper.classList.add('hidden');
-                }, 300);
-
-                if (digitalHumanContainer) {
-                    digitalHumanContainer.style.opacity = '0';
-                    digitalHumanContainer.style.transform = 'translateY(50px) scale(0.95)';
-                    setTimeout(() => {
-                        if (!isOpen && window.matchMedia('(min-width: 768px)').matches) {
-                             digitalHumanContainer.classList.add('hidden');
-                        }
-                    }, 400);
-                }
-            }
+        // --- 步骤 2: 检测 Hls.js 支持 ---
+        const pHlsjs = document.createElement("p");
+        if (Hls.isSupported()) {
+          pHlsjs.innerHTML =
+            "<strong>✅ Hls.js 支持检测:</strong> 支持 (可以使用 JavaScript 库播放)";
+          pHlsjs.className = "success";
+        } else {
+          pHlsjs.innerHTML =
+            "<strong>❌ Hls.js 支持检测:</strong> 不支持 (浏览器缺少媒体源扩展 Media Source Extensions)";
+          pHlsjs.className = "error";
         }
+        resultsDiv.appendChild(pHlsjs);
 
-        // Simulate report generation completion for the last assistant message
-        setTimeout(() => {
-            const typingIndicatorFinal = document.querySelector('.typing-indicator-final');
-            const assistantLastResponseBubble = document.getElementById('assistant-last-response');
+        // --- 步骤 3: 根据检测结果尝试播放 ---
+        const pPlayback = document.createElement("p");
 
-            if (typingIndicatorFinal && assistantLastResponseBubble) {
-                // Remove typing indicator
-                typingIndicatorFinal.remove();
-
-                // Add completion message
-                const completionMessage = document.createElement('p');
-                completionMessage.className = 'text-sm text-green-400 pt-2'; // Using green to indicate success
-                completionMessage.textContent = '报告已生成，点击查看';
-                assistantLastResponseBubble.insertBefore(completionMessage, assistantLastResponseBubble.querySelector('.text-xs.text-slate-500'));
-            }
-        }, 7000); // Simulate report generation time (7 seconds)
-
+        // 优先使用原生支持 (主要针对 Safari)
+        if (video.canPlayType("application/vnd.apple.mpegurl")) {
+          pPlayback.innerHTML =
+            "<strong>播放方式:</strong> 正在使用浏览器原生 HLS 功能进行播放...";
+          pPlayback.className = "success";
+          video.src = m3u8Url;
+          video.addEventListener("loadedmetadata", function () {
+            console.log("视频元数据已加载（原生方式）");
+          });
+          // 如果原生不支持，但 hls.js 支持 (主要针对 Chrome, Firefox)
+        } else if (Hls.isSupported()) {
+          pPlayback.innerHTML =
+            "<strong>播放方式:</strong> 正在使用 <code>hls.js</code> 库进行播放...";
+          pPlayback.className = "success";
+          const hls = new Hls();
+          hls.loadSource(m3u8Url);
+          hls.attachMedia(video);
+          hls.on(Hls.Events.MANIFEST_PARSED, function () {
+            console.log("hls.js 已成功解析 m3u8 清单");
+          });
+          // 都不支持
+        } else {
+          pPlayback.innerHTML =
+            "<strong>播放方式:</strong> 无法播放，浏览器既不原生支持HLS，也不兼容hls.js。";
+          pPlayback.className = "error";
+          video.poster =
+            "data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22640%22%20height%3D%22360%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20640%20360%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text/css%22%3E%23holder_18e95088d8b%20text%20%7B%20fill%3A%23AAAAAA%3Bfont-weight%3Abold%3Bfont-family%3AArial%2C%20Helvetica%2C%20Open%20Sans%2C%20sans-serif%2C%20monospace%3Bfont-size%3A32pt%20%7D%20%3C/style%3E%3C/defs%3E%3Cg%20id%3D%22holder_18e95088d8b%22%3E%3Crect%20width%3D%22640%22%20height%3D%22360%22%20fill%3D%22%23EEEEEE%22%3E%3C/rect%3E%3Cg%3E%3Ctext%20x%3D%22143.4921875%22%20y%3D%22195.2%22%3EHLS Not Supported%3C/text%3E%3C/g%3E%3C/g%3E%3C/svg%3E"; // 显示一个错误提示图
+        }
+        resultsDiv.appendChild(pPlayback);
+      });
     </script>
-
-</body>
+  </body>
 </html>
