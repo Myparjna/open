@@ -1,317 +1,363 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>【深度】HLS (m3u8) 浏览器底层支持检测</title>
-    <!-- 引入 hls.js 库 -->
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>我的名片 - 重新设计</title>
+
+    <!-- Tailwind CSS 4.1 via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Remix Icon via CDN -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+
     <style>
-        body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            line-height: 1.7;
-            color: #2c3e50;
-            max-width: 900px;
-            margin: 20px auto;
-            padding: 0 15px;
-            background-color: #ecf0f1;
-        }
-        .container {
-            background-color: #ffffff;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            margin-bottom: 25px;
-        }
-        h1, h2, h3 {
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
-        }
-        h1 { font-size: 2em; }
-        h2 { font-size: 1.6em; margin-top: 30px;}
-        h3 { font-size: 1.3em; border-bottom: none;}
+      /* 引入阿里巴巴普惠体 2.0 */
+      @font-face {
+        font-family: "Alibaba PuHuiTi 2.0";
+        font-weight: 400; /* Regular */
+        src: url("//at.alicdn.com/wf/webfont/suIcLsWKn4Gq/tLl8Z9PmFRuw.woff2")
+          format("woff2");
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Alibaba PuHuiTi 2.0";
+        font-weight: 500; /* Medium */
+        src: url("//at.alicdn.com/wf/webfont/suIcLsWKn4Gq/EMzoQWA20guR.woff2")
+          format("woff2");
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Alibaba PuHuiTi 2.0";
+        font-weight: 700; /* Bold */
+        src: url("//at.alicdn.com/wf/webfont/suIcLsWKn4Gq/oHSK6bzopgxl.woff2")
+          format("woff2");
+        font-display: swap;
+      }
 
-        .detection-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-        }
-        .detection-item {
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #bdc3c7;
-        }
-        .detection-item h4 {
-            margin: 0 0 10px 0;
-            color: #2980b9;
-        }
-        .detection-item p { margin: 5px 0 0 0; font-size: 0.9em; }
+      /* 基础样式和PC端模拟环境 */
+      body {
+        background-color: #111827; /* 深灰色背景 */
+        font-family: "Alibaba PuHuiTi 2.0", -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
 
-        .video-tests {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 20px;
-        }
-        .video-card {
-            background: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-        }
-        .video-card video {
-            width: 100%;
-            background-color: #000;
-            border-radius: 5px;
-            margin-bottom: 10px;
-        }
-        .video-card-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .video-card-controls button {
-            padding: 8px 15px;
-            border: none;
-            background-color: #3498db;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .video-card-controls button:hover { background-color: #2980b9; }
-        .status { font-weight: bold; font-size: 0.9em; }
+      /* 模拟手机屏幕容器 */
+      .mobile-shell {
+        width: 100%;
+        max-width: 375px; /* iPhone X 宽度 */
+        height: 812px; /* iPhone X 高度 */
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      }
 
-        .success { color: #27ae60; }
-        .warning { color: #f39c12; }
-        .error { color: #c0392b; }
-        code {
-            background-color: #e8e8e8;
-            padding: 3px 6px;
-            border-radius: 4px;
-            font-family: "Courier New", Courier, monospace;
-        }
-        .explanation {
-            background-color: #eaf5ff;
-            border-left: 5px solid #3498db;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 5px;
-        }
-         .special-note {
-            background-color: #fffbe6;
-            border-left: 5px solid #f1c40f;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-        }
+      /* 自定义 wot-design-uni 风格的开关 */
+      .wd-switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+        cursor: pointer;
+      }
+      .wd-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .wd-switch-slider {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #e5e7eb; /* 灰色背景 */
+        transition: 0.3s;
+        border-radius: 34px;
+      }
+      .wd-switch-slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 2px;
+        bottom: 2px;
+        background-color: white;
+        transition: 0.3s;
+        border-radius: 50%;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+      .wd-switch input:checked + .wd-switch-slider {
+        background-color: #047857; /* 祖母绿/主题色 */
+      }
+      .wd-switch input:checked + .wd-switch-slider:before {
+        transform: translateX(20px);
+      }
+
+      /* 隐藏滚动条 */
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none; /* IE and Edge */
+        scrollbar-width: none; /* Firefox */
+      }
     </style>
-</head>
-<body>
-
-    <div class="container">
-        <h1>【深度】HLS (m3u8) 浏览器底层支持检测</h1>
-        <p>此页面通过检测浏览器底层的多项Web API，来深入分析其对HLS视频流的播放能力，并解释其背后的技术原因。</p>
-    </div>
-
-    <div class="container">
-        <h2>第一步：浏览器底层能力检测</h2>
-        <div class="detection-grid" id="detection-results">
-            <!-- 底层能力检测结果将动态插入此处 -->
+  </head>
+  <body class="flex items-center justify-center min-h-screen p-4">
+    <!-- 模拟手机屏幕 -->
+    <div
+      class="mobile-shell bg-gray-50 rounded-3xl overflow-hidden flex flex-col"
+    >
+      <!-- 模拟状态栏 -->
+      <header class="flex-shrink-0 px-4 pt-1 bg-gray-50">
+        <div
+          class="flex justify-between items-center text-black text-sm font-semibold"
+        >
+          <span>9:41</span>
+          <div class="flex items-center gap-1">
+            <i class="ri-bar-chart-fill"></i>
+            <i class="ri-wifi-fill"></i>
+            <i class="ri-battery-fill"></i>
+          </div>
         </div>
-        <div class="explanation">
-            <h4>关键API解读：</h4>
-            <ul>
-                <li><strong>原生HLS支持:</strong> 这是浏览器自身解码m3u8的能力，主要存在于Apple的Safari浏览器。</li>
-                <li><strong>Media Source Extensions (MSE):</strong> <strong>这是最重要的API</strong>。它允许JavaScript代码动态地将媒体片段（如.ts文件）喂给<code><video></code>标签。<code>hls.js</code>库完全依赖此API工作。<strong>如果浏览器不支持MSE，<code>hls.js</code>就无法运行。</strong></li>
-                <li><strong>H.264/AVC + AAC Codec 支持:</strong> 即使支持MSE，浏览器也必须能解码视频流内的音视频编码。H.264(视频)和AAC(音频)是最常见的组合。如果不支持，视频将无法播放。</li>
-                <li><strong>Encrypted Media Extensions (EME):</strong> 用于播放受DRM（数字版权管理）保护的加密内容。对于常规的HLS流不是必需的，但对于付费内容平台很重要。</li>
+        <!-- 模拟小程序胶囊 -->
+        <div
+          class="absolute top-8 right-3 flex items-center bg-white/70 backdrop-blur-sm border border-gray-200/50 rounded-full px-2 py-1 text-black"
+        >
+          <i class="ri-more-2-fill text-lg"></i>
+          <div class="w-px h-4 bg-gray-300 mx-2"></div>
+          <div class="w-5 h-5 rounded-full bg-gray-300"></div>
+        </div>
+      </header>
+
+      <!-- 主内容区域 -->
+      <main class="flex-1 overflow-y-auto no-scrollbar pb-8">
+        <!-- 页面标题栏 -->
+        <div class="flex items-center justify-between px-4 py-3">
+          <i
+            class="ri-arrow-left-s-line text-2xl text-gray-800 cursor-pointer transition-transform active:scale-90"
+          ></i>
+          <h1 class="text-lg font-semibold text-gray-900">我的名片</h1>
+          <div class="w-8"></div>
+          <!-- 占位符，使标题居中 -->
+        </div>
+
+        <div class="px-4 space-y-5">
+          <!-- 名片卡片 -->
+          <div
+            class="bg-gradient-to-br from-emerald-50 to-teal-100 rounded-2xl p-5 shadow-lg shadow-emerald-500/10 relative overflow-hidden"
+          >
+            <div
+              class="absolute -top-10 -right-10 w-40 h-40 bg-white/30 rounded-full filter blur-xl opacity-50"
+            ></div>
+            <div
+              class="absolute -bottom-12 -left-12 w-36 h-36 border-4 border-white/50 rounded-full opacity-50"
+            ></div>
+
+            <div class="relative z-10">
+              <!-- 顶部个人信息 -->
+              <div class="flex items-start justify-between">
+                <div>
+                  <h2 class="text-2xl font-bold text-gray-900">吴国波</h2>
+                  <div class="flex items-center gap-2 mt-2">
+                    <span
+                      class="bg-emerald-600 text-white text-xs font-medium px-2.5 py-1 rounded-full"
+                      >董事长</span
+                    >
+                    <span
+                      class="bg-yellow-500 text-white text-xs font-medium px-2.5 py-1 rounded-full flex items-center gap-1"
+                    >
+                      <i class="ri-star-s-fill"></i> 副秘书长
+                    </span>
+                  </div>
+                </div>
+                <img
+                  src="https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&dpr=2&fit=crop"
+                  alt="User Avatar"
+                  class="w-16 h-16 rounded-full border-2 border-white shadow-md"
+                />
+              </div>
+
+              <!-- 分隔线 -->
+              <hr class="my-5 border-t border-teal-200/60" />
+
+              <!-- 详细联系信息 -->
+              <div class="space-y-3.5 text-sm text-gray-700">
+                <div class="flex items-start gap-3">
+                  <i
+                    class="ri-phone-line text-emerald-700 mt-0.5 text-base"
+                  ></i>
+                  <span>138 0013 8000</span>
+                </div>
+                <div class="flex items-start gap-3">
+                  <i
+                    class="ri-building-4-line text-emerald-700 mt-0.5 text-base"
+                  ></i>
+                  <span>宁波匠心精成文化传媒有限公司</span>
+                </div>
+                <div class="flex items-start gap-3">
+                  <i
+                    class="ri-map-pin-line text-emerald-700 mt-0.5 text-base"
+                  ></i>
+                  <span>浙江省宁波市江北区风华路38弄</span>
+                </div>
+                <div class="flex items-start gap-3">
+                  <i
+                    class="ri-instance-line text-emerald-700 mt-0.5 text-base"
+                  ></i>
+                  <span>文化 / 传媒 / 广告</span>
+                </div>
+              </div>
+
+              <!-- 底部 Logo 和二维码 -->
+              <div class="flex items-center justify-between mt-6">
+                <div class="flex items-center gap-2">
+                  <img
+                    src="https://s2.loli.net/2024/07/01/B7dYgD9XN5vSPrs.png"
+                    alt="Company Logo"
+                    class="w-8 h-8 rounded-lg bg-white p-1 object-contain"
+                  />
+                  <span class="text-xs text-gray-500 font-medium"
+                    >滁州商会</span
+                  >
+                </div>
+                <button
+                  class="bg-white/60 backdrop-blur-sm text-emerald-800 p-2 rounded-full transition-transform active:scale-90"
+                >
+                  <i class="ri-qr-code-line text-2xl"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 数据看板 -->
+          <div class="bg-white rounded-2xl p-5 shadow-sm">
+            <h3 class="font-semibold text-gray-800 mb-4">数据看板</h3>
+            <div class="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <p class="text-2xl font-bold text-emerald-600">3</p>
+                <p class="text-xs text-gray-500 mt-1">今日访问</p>
+              </div>
+              <div>
+                <p class="text-2xl font-bold text-gray-800">16</p>
+                <p class="text-xs text-gray-500 mt-1">本周访问</p>
+              </div>
+              <div>
+                <p class="text-2xl font-bold text-gray-800">89</p>
+                <p class="text-xs text-gray-500 mt-1">总访问量</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 最近访客 -->
+          <div class="bg-white rounded-2xl p-5 shadow-sm">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="font-semibold text-gray-800">最近访客</h3>
+              <a href="#" class="text-sm text-emerald-600 font-medium"
+                >查看全部 <i class="ri-arrow-right-s-line align-middle"></i
+              ></a>
+            </div>
+            <ul class="space-y-4">
+              <li class="flex items-center gap-3">
+                <img
+                  src="https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?w=100&h=100&fit=crop"
+                  alt="Visitor"
+                  class="w-10 h-10 rounded-full"
+                />
+                <div class="flex-1">
+                  <p class="font-semibold text-sm text-gray-800">王源</p>
+                  <p class="text-xs text-gray-400">某某科技 - 产品经理</p>
+                </div>
+                <span class="text-xs text-gray-400">2 小时前</span>
+              </li>
+              <li class="flex items-center gap-3">
+                <img
+                  src="https://images.unsplash.com/photo-1554151228-14d9def656e4?w=100&h=100&fit=crop"
+                  alt="Visitor"
+                  class="w-10 h-10 rounded-full"
+                />
+                <div class="flex-1">
+                  <p class="font-semibold text-sm text-gray-800">李静</p>
+                  <p class="text-xs text-gray-400">风华资本 - 投资分析师</p>
+                </div>
+                <span class="text-xs text-gray-400">昨天 15:30</span>
+              </li>
+              <li class="flex items-center gap-3">
+                <img
+                  src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&h=100&fit=crop"
+                  alt="Visitor"
+                  class="w-10 h-10 rounded-full"
+                />
+                <div class="flex-1">
+                  <p class="font-semibold text-sm text-gray-800">陈思宇</p>
+                  <p class="text-xs text-gray-400">律政先锋律师事务所</p>
+                </div>
+                <span class="text-xs text-gray-400">2025-06-28</span>
+              </li>
             </ul>
+          </div>
+
+          <!-- 权限设置 -->
+          <div class="bg-white rounded-2xl p-5 shadow-sm">
+            <h3 class="font-semibold text-gray-800 mb-2">权限设置</h3>
+            <div class="divide-y divide-gray-100">
+              <div class="flex justify-between items-center py-3">
+                <label for="public" class="text-sm text-gray-800 font-medium"
+                  >公开我的名片</label
+                >
+                <label class="wd-switch">
+                  <input type="checkbox" id="public" checked />
+                  <span class="wd-switch-slider"></span>
+                </label>
+              </div>
+              <div class="flex justify-between items-center py-3">
+                <label for="show-phone" class="text-sm text-gray-600"
+                  >显示手机号码</label
+                >
+                <label class="wd-switch">
+                  <input type="checkbox" id="show-phone" checked />
+                  <span class="wd-switch-slider"></span>
+                </label>
+              </div>
+              <div class="flex justify-between items-center py-3">
+                <label for="show-address" class="text-sm text-gray-600"
+                  >显示企业地址</label
+                >
+                <label class="wd-switch">
+                  <input type="checkbox" id="show-address" checked />
+                  <span class="wd-switch-slider"></span>
+                </label>
+              </div>
+              <div class="flex justify-between items-center py-3">
+                <label for="show-industry" class="text-sm text-gray-600"
+                  >显示所属行业</label
+                >
+                <label class="wd-switch">
+                  <input type="checkbox" id="show-industry" />
+                  <span class="wd-switch-slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
         </div>
+      </main>
+
+      <!-- 底部操作栏 -->
+      <footer
+        class="flex-shrink-0 px-4 py-2 bg-white/70 backdrop-blur-sm border-t border-gray-200/80"
+      >
+        <button
+          class="w-full bg-emerald-600 text-white font-semibold py-3 rounded-xl shadow-lg shadow-emerald-500/30 transition active:scale-[0.98] active:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-opacity-75"
+        >
+          <i class="ri-share-forward-fill align-middle mr-2"></i>
+          分享名片
+        </button>
+        <div class="w-32 h-1.5 bg-black rounded-full mx-auto mt-3"></div>
+      </footer>
     </div>
-
-    <div class="container">
-        <h2>第二步：多场景播放测试</h2>
-        <div class="special-note">
-            <p><strong>重要提示:</strong> 您提供的 <code>http://...</code> 链接在某些情况下可能无法加载。常见原因包括：</p>
-            <ol>
-                <li><strong>CORS 策略：</strong> 视频服务器 (<code>58.250.95.50</code>) 没有正确配置，不允许来自您当前域名（或本地文件 <code>file://</code>）的跨域请求。</li>
-                <li><strong>混合内容 (Mixed Content)：</strong> 如果您将此HTML页面部署在一个 <code>https://</code> 的安全网站上，现代浏览器会出于安全原因，阻止加载不安全的 <code>http://</code> 视频资源。</li>
-            </ol>
-            <p>请按F12打开浏览器开发者工具，在“控制台(Console)”和“网络(Network)”面板中查看具体的错误信息，这有助于定位问题。</p>
-        </div>
-        <div class="video-tests" id="video-tests-container">
-            <!-- 视频测试卡片将动态插入此处 -->
-        </div>
-    </div>
-
-    <div class="container">
-        <h2>最终分析与结论</h2>
-        <div class="explanation">
-            <h3 id="final-conclusion-title">分析中...</h3>
-            <p id="final-conclusion-text">请查看上方的检测结果和播放测试以得出结论。</p>
-            <p><strong>根本原因总结：</strong> 移动端或桌面版的Chrome/Firefox之所以不能“原生”播放m3u8，是因为它们的设计哲学是将这种非标准的流媒体协议交由JavaScript库处理，而不是内置到浏览器核心。它们提供了强大的MSE API作为“钩子”，让<code>hls.js</code>这样的库能够高效地完成解析和播放任务。因此，“不支持”原生HLS并非缺陷，而是架构选择，而**“支持MSE”才是决定m3u8能否在这些浏览器中播放的关键**。</p>
-        </div>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const detectionResultsContainer = document.getElementById('detection-results');
-            const videoTestsContainer = document.getElementById('video-tests-container');
-            let hlsInstances = {}; // 使用对象存储多个hls实例
-
-            // --- 底层能力检测逻辑 ---
-            function runDetections() {
-                const results = {};
-                const tempVideo = document.createElement('video');
-
-                // 1. 原生HLS支持
-                results['Native HLS'] = {
-                    supported: !!tempVideo.canPlayType('application/vnd.apple.mpegurl'),
-                    description: '浏览器是否能直接播放m3u8 MIME类型。'
-                };
-
-                // 2. Media Source Extensions (MSE)
-                results['Media Source Extensions (MSE)'] = {
-                    supported: 'MediaSource' in window || 'WebKitMediaSource' in window,
-                    description: '允许JS喂给video标签媒体数据，hls.js的基石。'
-                };
-
-                // 3. EME (Encrypted Media Extensions)
-                results['Encrypted Media Extensions (EME)'] = {
-                    supported: 'requestMediaKeySystemAccess' in navigator,
-                    description: '支持播放受DRM保护的加密内容。'
-                };
-
-                // 4. Codec Support (via MSE)
-                const commonCodec = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"'; // H.264 Main + AAC-LC
-                results[`Codec: H.264 + AAC`] = {
-                    supported: window.MediaSource ? MediaSource.isTypeSupported(commonCodec) : false,
-                    description: `是否支持最常见的HLS音视频编码 (${commonCodec})。`
-                };
-                
-                return results;
-            }
-
-            function displayDetections(results) {
-                for (const key in results) {
-                    const item = results[key];
-                    const itemDiv = document.createElement('div');
-                    itemDiv.className = 'detection-item';
-                    
-                    const statusClass = item.supported ? 'success' : 'error';
-                    const statusIcon = item.supported ? '✅' : '❌';
-
-                    itemDiv.innerHTML = `
-                        <h4>${key}</h4>
-                        <p class="status ${statusClass}">${statusIcon} ${item.supported ? '支持' : '不支持'}</p>
-                        <p>${item.description}</p>
-                    `;
-                    detectionResultsContainer.appendChild(itemDiv);
-                }
-            }
-            
-            const detectionResults = runDetections();
-            displayDetections(detectionResults);
-
-            // --- 视频播放测试逻辑 ---
-            const testStreams = [
-                { name: '用户指定测试流 (HTTP)', url: 'http://58.250.95.50:10007/pz0001/pz0001/hls.m3u8' },
-                { name: '标准对比流 (HTTPS)', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8' },
-                { name: '可能失败的URL (无效链接)', url: 'https://example.com/not-a-video.m3u8' }
-            ];
-
-            testStreams.forEach((stream, index) => {
-                const card = document.createElement('div');
-                card.className = 'video-card';
-                card.innerHTML = `
-                    <h3>${stream.name}</h3>
-                    <p style="font-size:0.8em; word-break:break-all;">URL: ${stream.url}</p>
-                    <video id="video-${index}" controls muted playsinline></video>
-                    <div class="video-card-controls">
-                        <button data-url="${stream.url}" data-video-id="video-${index}" data-status-id="status-${index}" data-index="${index}">加载并播放</button>
-                        <div class="status" id="status-${index}">状态: 准备就绪</div>
-                    </div>
-                `;
-                videoTestsContainer.appendChild(card);
-            });
-
-            videoTestsContainer.addEventListener('click', function(e) {
-                if (e.target.tagName === 'BUTTON') {
-                    const button = e.target;
-                    const url = button.dataset.url;
-                    const videoId = button.dataset.videoId;
-                    const statusId = button.dataset.statusId;
-                    const index = button.dataset.index;
-                    const video = document.getElementById(videoId);
-                    const statusEl = document.getElementById(statusId);
-
-                    // 销毁当前卡片可能存在的旧实例
-                    if (hlsInstances[index]) {
-                        hlsInstances[index].destroy();
-                    }
-
-                    if (Hls.isSupported()) {
-                        statusEl.textContent = '状态: 加载中...';
-                        statusEl.className = 'status warning';
-
-                        const hls = new Hls();
-                        hlsInstances[index] = hls; // 存储新实例
-                        hls.loadSource(url);
-                        hls.attachMedia(video);
-
-                        hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                            statusEl.textContent = '状态: 播放中';
-                            statusEl.className = 'status success';
-                            video.play().catch(err => {
-                                console.warn(`视频 [${videoId}] 播放被阻止，可能需要用户交互。`, err);
-                                statusEl.textContent = '状态: 点击视频播放';
-                                statusEl.className = 'status warning';
-                            });
-                        });
-                        
-                        hls.on(Hls.Events.ERROR, function(event, data) {
-                             if (data.fatal) {
-                                let errorReason = '';
-                                switch(data.type) {
-                                    case Hls.ErrorTypes.NETWORK_ERROR:
-                                        errorReason = `网络错误: ${data.details}. (请检查CORS或链接是否有效)`;
-                                        break;
-                                    case Hls.ErrorTypes.MEDIA_ERROR:
-                                        errorReason = `媒体错误: ${data.details}. (视频编码或容器问题)`;
-                                        hls.recoverMediaError();
-                                        break;
-                                    default:
-                                        errorReason = `致命错误: ${data.details}`;
-                                        hls.destroy();
-                                        break;
-                                }
-                                statusEl.textContent = `错误: ${errorReason}`;
-                                statusEl.className = 'status error';
-                             }
-                        });
-                    } else {
-                        statusEl.textContent = '错误: hls.js 不被支持';
-                        statusEl.className = 'status error';
-                    }
-                }
-            });
-
-            // --- 更新最终结论 ---
-            const conclusionTitle = document.getElementById('final-conclusion-title');
-            const conclusionText = document.getElementById('final-conclusion-text');
-            if (detectionResults['Media Source Extensions (MSE)'].supported) {
-                conclusionTitle.textContent = '结论：浏览器兼容 ✅';
-                conclusionTitle.className = 'success';
-                conclusionText.textContent = '您的浏览器支持 Media Source Extensions (MSE) 和必要的编解码器。这意味着它可以通过 hls.js 库完美地播放 m3u8 视频流，这也是在非 Safari 浏览器上的标准解决方案。';
-            } else {
-                conclusionTitle.textContent = '结论：浏览器不兼容 ❌';
-                conclusionTitle.className = 'error';
-                conclusionText.textContent = '您的浏览器不支持 Media Source Extensions (MSE)，这是 hls.js 运行的必要条件。因此，无法在此浏览器上通过 JavaScript 库播放 HLS。如果原生HLS支持也为“否”，则此浏览器无法播放 m3u8 视频。';
-            }
-        });
-    </script>
-</body>
+  </body>
 </html>
